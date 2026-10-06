@@ -1,0 +1,15 @@
+{
+  "name": "justiceflow-monorepo",
+  "version": "1.0.0",
+  "description": "JusticeFlow Legal Practice Management System (Angular + Node.js Microservices)",
+  "scripts": {
+    "start": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,cyan\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm run start",
+    "start:frontend": "cd frontend && npm start",
+    "build:frontend": "cd frontend && npm run build",
+    "db:setup": "cd backend && npm run db:setup"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

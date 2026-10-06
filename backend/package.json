@@ -1,0 +1,33 @@
+{
+  "name": "justiceflow-backend",
+  "version": "1.0.0",
+  "description": "JusticeFlow Microservices Backend for Law Firm Management",
+  "main": "api-gateway/server.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:auth\" \"npm run start:client\" \"npm run start:case\" \"npm run start:docs\" \"npm run start:time\" \"npm run start:billing\" \"npm run start:calendar\" \"npm run start:gateway\"",
+    "start:gateway": "node api-gateway/server.js",
+    "start:auth": "node auth-service/server.js",
+    "start:client": "node client-service/server.js",
+    "start:case": "node case-service/server.js",
+    "start:docs": "node documents-service/server.js",
+    "start:time": "node time-tracking-service/server.js",
+    "start:billing": "node billing-service/server.js",
+    "start:calendar": "node calendar-service/server.js",
+    "db:setup": "node database/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^3.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.7"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.0"
+  }
+}

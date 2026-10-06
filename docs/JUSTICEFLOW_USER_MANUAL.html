@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JusticeFlow - User & Client Comprehensive Guide</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+    body {
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: #2C3E50;
+      line-height: 1.6;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 0;
+    }
+    .cover {
+      text-align: center;
+      padding: 60px 20px 40px 20px;
+      border-bottom: 3px solid #3498DB;
+      margin-bottom: 40px;
+    }
+    .logo-badge {
+      display: inline-block;
+      background: #2C3E50;
+      color: #FFFFFF;
+      font-size: 28px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+    }
+    h1 {
+      font-size: 32px;
+      color: #2C3E50;
+      margin: 10px 0;
+      font-weight: 800;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: #7F8C8D;
+      margin-bottom: 25px;
+    }
+    .meta-box {
+      background: #F8FAFC;
+      border: 1px solid #BDC3C7;
+      border-radius: 8px;
+      padding: 15px;
+      display: inline-block;
+      text-align: left;
+      font-size: 13px;
+    }
+    h2 {
+      font-size: 22px;
+      color: #2C3E50;
+      border-left: 5px solid #3498DB;
+      padding-left: 12px;
+      margin-top: 35px;
+      margin-bottom: 15px;
+    }
+    h3 {
+      font-size: 17px;
+      color: #34495E;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+    p, li {
+      font-size: 14px;
+      color: #34495E;
+    }
+    ul, ol {
+      padding-left: 25px;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #BDC3C7;
+      border-radius: 8px;
+      padding: 18px;
+      margin: 15px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .highlight-box {
+      background: #EBF5FB;
+      border-left: 4px solid #3498DB;
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin: 15px 0;
+      font-size: 13.5px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-open { background: #E8F8F0; color: #27AE60; }
+    .badge-pending { background: #FEF5E7; color: #D35400; }
+    .badge-closed { background: #F2F4F4; color: #7F8C8D; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #BDC3C7;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #2C3E50;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover">
+    <div class="logo-badge">JUSTICEFLOW</div>
+    <h1>LEGAL PRACTICE MANAGEMENT SYSTEM</h1>
+    <div class="subtitle">Complete User Manual, Operational Workflow & Technical Guide for Clients & Law Firms</div>
+    <div class="meta-box">
+      <strong>Application Version:</strong> 1.0 Enterprise Edition<br>
+      <strong>Platform Architecture:</strong> Decoupled Node.js Microservices + Angular 17 / Ionic<br>
+      <strong>Author:</strong> JusticeFlow Engineering Team<br>
+      <strong>Target Audience:</strong> Managing Partners, Senior Counsel, Associates, Paralegals & Law Firm Clients<br>
+      <strong>Publication Date:</strong> October 2026
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><strong>Executive Overview</strong> — Why JusticeFlow exists & what it achieves</li>
+    <li><strong>System Architecture in Simple Terms</strong> — Microservices & security</li>
+    <li><strong>End-to-End Legal Practice Workflow</strong> — How matters progress</li>
+    <li><strong>Detailed Page-by-Page User Guide:</strong>
+      <ul>
+        <li>Screen 1: Secure Portal Authentication (`/login`)</li>
+        <li>Screen 2: Executive Practice Dashboard (`/dashboard`)</li>
+        <li>Screen 3: Client Master Directory (`/clients`)</li>
+        <li>Screen 4: Legal Matters & Lawsuits (`/cases`)</li>
+        <li>Screen 5: 360° Case Detail & File Dossier (`/cases/:id`)</li>
+        <li>Screen 6: Legal Documents & Evidence Repository (`/documents`)</li>
+        <li>Screen 7: Attorney Time Tracking & Billing Engine (`/time-tracking`)</li>
+      </ul>
+    </li>
+    <li><strong>Default User Accounts & Demo Credentials</strong></li>
+    <li><strong>Security, Compliance & Data Integrity</strong></li>
+  </ol>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 1 -->
+  <h2>1. Executive Overview</h2>
+  <p>
+    <strong>JusticeFlow</strong> is a modern case management software designed specifically for law firms, legal clinics, and corporate legal departments. 
+    In standard practice, law firms suffer from disconnected tools: emails scattered across inboxes, court pleadings lost in desktop folders, missed filing deadlines, and untracked billable hours that lead to revenue leakage.
+  </p>
+  <p>
+    JusticeFlow integrates the entire lifecycle of legal practice into a unified, secure operating system:
+  </p>
+  <ul>
+    <li><strong>Retainer Management:</strong> Maintain verified contact profiles for both corporations and individuals.</li>
+    <li><strong>Matter & Docket Tracking:</strong> Track every lawsuit, arbitration, patent defense, and corporate filing through dedicated stages.</li>
+    <li><strong>Budget Guardrails:</strong> Proactively monitor legal expenses against client-approved budget caps to prevent billing disputes.</li>
+    <li><strong>Privileged Document Repository:</strong> Centralized digital filing cabinet for pleadings, motions, and evidence exhibits.</li>
+    <li><strong>Contemporary Time Capture:</strong> Log billable hours in real-time with automated rate calculations and realization reporting.</li>
+  </ul>
+
+  <!-- SECTION 2 -->
+  <h2>2. System Architecture in Simple Terms</h2>
+  <p>
+    JusticeFlow is built using an <strong>independent microservice architecture</strong>. Instead of one large monolithic software where a single failure halts the entire firm, JusticeFlow separates duties into 6 dedicated services coordinated through an <strong>API Gateway</strong>:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Service Component</th>
+        <th>Port</th>
+        <th>Primary Responsibility</th>
+        <th>Why This Matters to the Firm</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>API Gateway</strong></td>
+        <td>5000</td>
+        <td>Traffic director & security checkpoint</td>
+        <td>Single point of entry that routes all client and lawyer requests securely.</td>
+      </tr>
+      <tr>
+        <td><strong>Auth Service</strong></td>
+        <td>3001</td>
+        <td>Staff identities & passwords</td>
+        <td>Guarantees that only authorized personnel can see confidential case records.</td>
+      </tr>
+      <tr>
+        <td><strong>Client Service</strong></td>
+        <td>3002</td>
+        <td>Client CRM & retainers</td>
+        <td>Organizes corporate clients, billing addresses, and assigned partner lawyers.</td>
+      </tr>
+      <tr>
+        <td><strong>Case Service</strong></td>
+        <td>3003</td>
+        <td>Legal matters & court dockets</td>
+        <td>Maintains case numbers, court branches, assigned judges, and approved budgets.</td>
+      </tr>
+      <tr>
+        <td><strong>Documents Service</strong></td>
+        <td>3004</td>
+        <td>File storage & downloads</td>
+        <td>Stores legal pleadings, briefs, exhibits, and contracts with download links.</td>
+      </tr>
+      <tr>
+        <td><strong>Time Tracking Service</strong></td>
+        <td>3005</td>
+        <td>Billable hours & fee realization</td>
+        <td>Captures attorney work slips and automatically updates case budget utilization.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 3 -->
+  <h2>3. End-to-End Legal Practice Workflow</h2>
+  <p>The system mirrors the actual day-to-day legal workflow in five seamless stages:</p>
+  <ol>
+    <li><strong>Client Retainer:</strong> A new corporate entity or individual retains the firm. Their profile, jurisdiction, and lead counsel are saved in the <em>Client Directory</em>.</li>
+    <li><strong>Matter Inception:</strong> A specific matter is opened (e.g. <em>Commercial Breach of Contract</em>) with an assigned docket number, court, judge, and client budget.</li>
+    <li><strong>Evidence & Pleadings:</strong> Complaint files, contracts, and filings are uploaded to the matter file in the <em>Documents Repository</em>.</li>
+    <li><strong>Legal Service & Time Slips:</strong> Attorneys and paralegals record work performed (e.g., <em>3.5 hours drafting deposition questions</em> at $450/hour).</li>
+    <li><strong>Financial Burn-Down:</strong> The matter's budget is automatically recalculated and visually tracked on the <em>Executive Dashboard</em>.</li>
+  </ol>
+
+  <!-- SECTION 4 -->
+  <h2>4. Detailed Page-by-Page User Guide</h2>
+
+  <div class="card">
+    <h3>Screen 1: Secure Portal Authentication (`/login`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/login</code></p>
+    <p><strong>Purpose:</strong> The front door of the firm. Protects all privileged legal information.</p>
+    <ul>
+      <li><strong>Sign-In & Register:</strong> Toggle between logging into an existing account or registering new staff.</li>
+      <li><strong>Password Encryption:</strong> Passwords are cryptographically salted and hashed before storing in the database.</li>
+      <li><strong>One-Click Demo Buttons:</strong> Instant credentials autofill for quick login during evaluations.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Screen 2: Executive Practice Dashboard (`/dashboard`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/dashboard</code></p>
+    <p><strong>Purpose:</strong> The cockpit for managing partners and legal teams to inspect business health in seconds.</p>
+    <ul>
+      <li><strong>Active Matters Card:</strong> Shows how many cases are currently in discovery or trial.</li>
+      <li><strong>Retained Clients Card:</strong> Shows the active retained client base.</li>
+      <li><strong>Billable Hours Card:</strong> Real-time count of all hours worked across the firm.</li>
+      <li><strong>Billed Realization Card:</strong> Total fee revenue earned from client work slips.</li>
+      <li><strong>Active Matters Table:</strong> Features color-coded progress bars showing how much of each case's budget has been consumed.</li>
+      <li><strong>Court Deadlines Calendar:</strong> Displays upcoming court appearances, motions, and trial dates.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Screen 3: Client Master Directory (`/clients`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/clients</code></p>
+    <p><strong>Purpose:</strong> Complete CRM for managing client retainers, corporate representatives, and conflict checks.</p>
+    <ul>
+      <li><strong>Client Records:</strong> Shows corporate name, contact email, phone, location, and assigned lead attorney.</li>
+      <li><strong>Matters Counter:</strong> Shows the number of active lawsuits linked to each client.</li>
+      <li><strong>Add/Edit Modal:</strong> Retain a new client or update existing contact details.</li>
+      <li><strong>Quick Search & Status Filter:</strong> Instant search by name, city, or phone number.</li>
+    </ul>
+  </div>
+
+  <div class="page-break"></div>
+
+  <div class="card">
+    <h3>Screen 4: Legal Matters & Cases (`/cases`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/cases</code></p>
+    <p><strong>Purpose:</strong> The core docket manager tracking all lawsuits, arbitrations, and transactions.</p>
+    <ul>
+      <li><strong>Practice Area Filters:</strong> Filter by Commercial Litigation, Corporate Securities, Intellectual Property, Probate, or Real Estate.</li>
+      <li><strong>Status Badges:</strong> Open (in discovery), Pending (in trial), On Hold (settlement stay), Closed (resolved).</li>
+      <li><strong>Budget Meter:</strong> Visual green/yellow/red bar indicating financial burn.</li>
+      <li><strong>New Matter Modal:</strong> Allows entry of court jurisdiction, judge, docket number, and approved budget.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Screen 5: 360° Case Detail & File Dossier (`/cases/:id`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/cases/1</code></p>
+    <p><strong>Purpose:</strong> The complete virtual trial binder for a specific lawsuit.</p>
+    <ul>
+      <li><strong>Financial Health Box:</strong> Shows exact budget spent versus approved cap with percentage.</li>
+      <li><strong>Court & Client Cards:</strong> Instant access to presiding judge, court branch, and client contact info.</li>
+      <li><strong>Tab 1 — Legal Documents:</strong> Lists all complaints, motions, and contracts attached to this case with direct download links.</li>
+      <li><strong>Tab 2 — Logged Hours:</strong> Complete itemized ledger of every attorney time slip recorded for this matter.</li>
+      <li><strong>Tab 3 — Factual Synopsis:</strong> Strategic notes and factual background of the case.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Screen 6: Legal Documents & Evidence Repository (`/documents`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/documents</code></p>
+    <p><strong>Purpose:</strong> Centralized law firm filing cabinet preventing misplaced files.</p>
+    <ul>
+      <li><strong>Classification Filter:</strong> Pleadings, Contracts, Exhibits, Orders, Term Sheets, and Settlement Agreements.</li>
+      <li><strong>Document Upload Modal:</strong> Upload real PDF and DOCX attachments linked to any legal matter.</li>
+      <li><strong>Download Stream:</strong> Securely stream documents to your computer.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Screen 7: Attorney Time Tracking & Billing (`/time-tracking`)</h3>
+    <p><strong>URL:</strong> <code>http://localhost:4200/time-tracking</code></p>
+    <p><strong>Purpose:</strong> The revenue engine of the law firm.</p>
+    <ul>
+      <li><strong>Revenue Metrics:</strong> Total billable hours and billed realization across all matters.</li>
+      <li><strong>Log Time Slip Modal:</strong> Input matter, hours, hourly rate ($/hr), and narrative description of legal tasks performed.</li>
+      <li><strong>Automated Budget Sync:</strong> As soon as hours are logged, the system automatically recalculates the matter's total spent budget.</li>
+    </ul>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 5 -->
+  <h2>5. Default User Accounts & Demo Credentials</h2>
+  <p>The system comes pre-seeded with realistic law firm users, cases, clients, documents, and billable time entries:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Staff Member</th>
+        <th>Email</th>
+        <th>Password</th>
+        <th>Permissions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Managing Partner (Admin)</strong></td>
+        <td>Alexander Vance, Esq.</td>
+        <td><code>admin@justiceflow.com</code></td>
+        <td><code>password123</code></td>
+        <td>Full access to all matters, financial billing, staff, and firm settings.</td>
+      </tr>
+      <tr>
+        <td><strong>Associate Attorney</strong></td>
+        <td>Sarah Jenkins, Esq.</td>
+        <td><code>sarah.jenkins@justiceflow.com</code></td>
+        <td><code>password123</code></td>
+        <td>Assigned cases, document upload, and billable time entry.</td>
+      </tr>
+      <tr>
+        <td><strong>Paralegal Assistant</strong></td>
+        <td>Marcus Ross</td>
+        <td><code>marcus.ross@justiceflow.com</code></td>
+        <td><code>password123</code></td>
+        <td>Document archiving, case research notes, and docket updates.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 6 -->
+  <h2>6. Security, Compliance & Data Integrity</h2>
+  <ul>
+    <li><strong>SQL Injection Immunity:</strong> All database operations utilize parameterized prepared queries through the <code>mysql2/promise</code> pool.</li>
+    <li><strong>Role-Based Access Control (RBAC):</strong> Authenticated requests carry digital JWT signatures verifying staff permissions.</li>
+    <li><strong>Tamper-Resistant Audit Trail:</strong> Critical operations (matter creation, time slip recording, file deletion) are logged into the <code>audit_logs</code> database table.</li>
+  </ul>
+
+  <div class="highlight-box">
+    <strong>Document Formats Available:</strong><br>
+    This complete user guide is provided in <strong>PDF format</strong> (<code>JUSTICEFLOW_USER_MANUAL.pdf</code>) for printing and sharing, and in <strong>Microsoft Word format</strong> (<code>JUSTICEFLOW_USER_MANUAL.docx</code>) for firm editing and custom branding.
+  </div>
+
+</body>
+</html>

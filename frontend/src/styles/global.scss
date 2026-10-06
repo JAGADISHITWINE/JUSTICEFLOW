@@ -1,0 +1,279 @@
+@import './variables.scss';
+@import './responsive.scss';
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Global Reset & Typography
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $font-family-base;
+  color: $dark-text;
+  background-color: $light-bg;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-heading;
+  color: $primary-color;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: $secondary-color;
+  text-decoration: none;
+  transition: $transition-base;
+
+  &:hover {
+    color: darken(#3498DB, 12%);
+  }
+}
+
+// App Layout Structure
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: $light-bg;
+}
+
+.main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.75rem 2rem;
+  background-color: $light-bg;
+  min-height: calc(100vh - #{$navbar-height});
+}
+
+// Custom Glass & Card utility
+.jf-card {
+  background: $card-bg;
+  border-radius: $radius-lg;
+  border: 1px solid $border-light;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: $transition-smooth;
+
+  &:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Buttons override
+.btn {
+  font-weight: 600;
+  border-radius: $radius-md;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: $transition-base;
+  line-height: 1.5;
+  vertical-align: middle;
+
+  i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05em;
+    line-height: 1;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+  }
+}
+
+.btn-primary {
+  background-color: $primary-color;
+  border-color: $primary-color;
+  color: $white;
+
+  &:hover, &:focus, &:active {
+    background-color: darken(#2C3E50, 8%);
+    border-color: darken(#2C3E50, 8%);
+  }
+}
+
+.btn-secondary {
+  background-color: $secondary-color;
+  border-color: $secondary-color;
+  color: $white;
+
+  &:hover, &:focus, &:active {
+    background-color: darken(#3498DB, 10%);
+    border-color: darken(#3498DB, 10%);
+  }
+}
+
+.btn-accent, .btn-success {
+  background-color: $accent-color !important;
+  border-color: $accent-color !important;
+  color: $white !important;
+
+  &:hover, &:focus {
+    background-color: darken(#27AE60, 8%) !important;
+  }
+}
+
+.btn-warning, .btn-danger {
+  background-color: $warning-color !important;
+  border-color: $warning-color !important;
+  color: $white !important;
+
+  &:hover, &:focus {
+    background-color: darken(#E74C3C, 8%) !important;
+  }
+}
+
+.btn-outline-primary {
+  color: $primary-color;
+  border-color: $primary-color;
+
+  &:hover {
+    background-color: $primary-color;
+    color: $white;
+  }
+}
+
+// Badges
+.badge-status {
+  padding: 0.35rem 0.75rem;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  &.status-open, &.status-active {
+    background-color: rgba(39, 174, 96, 0.12);
+    color: #27AE60;
+    border: 1px solid rgba(39, 174, 96, 0.25);
+  }
+
+  &.status-pending {
+    background-color: rgba(243, 156, 18, 0.12);
+    color: #D35400;
+    border: 1px solid rgba(243, 156, 18, 0.25);
+  }
+
+  &.status-on-hold {
+    background-color: rgba(52, 152, 219, 0.12);
+    color: #2980B9;
+    border: 1px solid rgba(52, 152, 219, 0.25);
+  }
+
+  &.status-closed, &.status-inactive {
+    background-color: rgba(127, 140, 141, 0.15);
+    color: #7F8C8D;
+    border: 1px solid rgba(127, 140, 141, 0.25);
+  }
+}
+
+// KPI Widget Cards
+.kpi-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: $white;
+  border: 1px solid $border-light;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+  transition: $transition-smooth;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 6px 12px -4px rgba(0, 0, 0, 0.04);
+  }
+
+  .kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $primary-color;
+    margin: 0.5rem 0 0.25rem 0;
+  }
+
+  .kpi-label {
+    font-size: 0.85rem;
+    color: $muted-text;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+// Data Tables
+.table-custom {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    background-color: #F8FAFC;
+    color: $primary-color;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.9rem 1rem;
+    border-bottom: 2px solid $border-light;
+  }
+
+  tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid $border-light;
+    font-size: 0.9rem;
+  }
+
+  tbody tr {
+    transition: background-color 0.15s ease;
+    &:hover {
+      background-color: rgba(236, 240, 241, 0.5);
+    }
+  }
+}
+
+// Toast / Alert notifications
+.toast-container-custom {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+}
