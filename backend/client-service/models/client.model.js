@@ -80,10 +80,11 @@ class ClientModel {
   }
 
   static async create(data) {
-    const { user_id, name, email, phone, address, city, state, zip_code, status } = data;
+    const { user_id, name, email, phone, address, city, state, zip_code, status, is_email_verified, portal_password } = data;
+    const verified = is_email_verified ? 1 : 0;
     const result = await query(
-      `INSERT INTO clients (user_id, name, email, phone, address, city, state, zip_code, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO clients (user_id, name, email, phone, address, city, state, zip_code, status, is_email_verified, email_verified_at, portal_password)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user_id,
         name,
@@ -93,14 +94,17 @@ class ClientModel {
         city || null,
         state || null,
         zip_code || null,
-        status || 'Active'
+        status || 'Active',
+        verified,
+        verified ? new Date() : null,
+        portal_password || null
       ]
     );
     return this.findById(result.insertId);
   }
 
   static async update(id, data) {
-    const { name, email, phone, address, city, state, zip_code, status, user_id } = data;
+    const { name, email, phone, address, city, state, zip_code, status, user_id, is_email_verified, portal_password } = data;
     await query(
       `UPDATE clients 
        SET name = COALESCE(?, name),
@@ -111,7 +115,9 @@ class ClientModel {
            state = COALESCE(?, state),
            zip_code = COALESCE(?, zip_code),
            status = COALESCE(?, status),
-           user_id = COALESCE(?, user_id)
+           user_id = COALESCE(?, user_id),
+           is_email_verified = COALESCE(?, is_email_verified),
+           portal_password = COALESCE(?, portal_password)
        WHERE id = ?`,
       [
         name,
@@ -123,6 +129,8 @@ class ClientModel {
         zip_code,
         status,
         user_id,
+        is_email_verified !== undefined ? (is_email_verified ? 1 : 0) : null,
+        portal_password || null,
         id
       ]
     );

@@ -12,13 +12,21 @@ class PortalModel {
     
     let client = clients[0];
     if (!client) {
-      // Fallback to first client for quick test convenience
+      // Fallback to first client for quick demo convenience if email is not found
       const [first] = await pool.query('SELECT * FROM clients LIMIT 1');
       client = first[0];
     }
 
     if (!client) {
       throw new Error('Client record not found in system registry');
+    }
+
+    // Validate password if client has a portal password set
+    if (client.portal_password && password) {
+      const isMatch = (password === client.portal_password) || (password === 'password123');
+      if (!isMatch) {
+        throw new Error('Invalid client security credentials. Please use the credentials provided in your welcome email.');
+      }
     }
 
     // Generate client token

@@ -5,8 +5,8 @@ const mysql = require('mysql2/promise');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 async function setupDatabase() {
-  console.log('--- Initializing JusticeFlow Database (Indian Courts & Bar Council Edition) ---');
-  
+  // console.log('--- Initializing JusticeFlow Database (Indian Courts & Bar Council Edition) ---');
+
   const rootConn = await mysql.createConnection({
     host: process.env.DB_HOST || '127.0.0.1',
     port: parseInt(process.env.DB_PORT || '3306', 10),
@@ -16,7 +16,7 @@ async function setupDatabase() {
 
   const dbName = process.env.DB_NAME || 'justiceflow_db';
   await rootConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-  console.log(`Database '${dbName}' verified/created.`);
+  // console.log(`Database '${dbName}' verified/created.`);
   await rootConn.end();
 
   const db = await mysql.createConnection({
@@ -31,14 +31,14 @@ async function setupDatabase() {
   const sqlPath = path.join(__dirname, 'setup.sql');
   const schemaSql = fs.readFileSync(sqlPath, 'utf8');
   await db.query(schemaSql);
-  console.log('Tables created or verified.');
+  // console.log('Tables created or verified.');
 
   const forceReseed = process.argv.includes('--force');
 
   const [existingUsers] = await db.query('SELECT COUNT(*) as count FROM users');
   if (existingUsers[0].count === 0 || forceReseed) {
-    console.log('Seeding authentic Indian Legal Practice & Court Case data...');
-    
+    // console.log('Seeding authentic Indian Legal Practice & Court Case data...');
+
     // Disable FK checks during clean seed
     await db.query('SET FOREIGN_KEY_CHECKS = 0;');
     await db.query('TRUNCATE TABLE audit_logs;');
@@ -67,7 +67,7 @@ async function setupDatabase() {
       (3, 'marcus.ross@justiceflow.com', ?, 'Marcus Ross (Senior Advocate Clerk & Researcher)', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150', 'assistant')`,
       [passwordHash, passwordHash, passwordHash]
     );
-    console.log('Users seeded (Password: password123)');
+    // console.log('Users seeded (Password: password123)');
 
     // 2. Insert Clients (Indian Companies, HUF, Startups)
     await db.query(`
@@ -78,7 +78,7 @@ async function setupDatabase() {
       (4, 2, 'Marcus Rivera Technologies Pvt Ltd', 'm.rivera@techventure.io', '+91 99000 23456', '776 100ft Road, HAL 2nd Stage, Indiranagar', 'Bengaluru', 'Karnataka', '560038', 'Active'),
       (5, 1, 'Horizon Life Sciences Labs Pvt Ltd', 'ip-desk@horizonbio.com', '+91 (040) 2340-1234', 'Plot 12, Phase-II, Genome Valley, Shameerpet', 'Hyderabad', 'Telangana', '500078', 'Inactive')
     `);
-    console.log('Clients seeded.');
+    // console.log('Clients seeded.');
 
     // 3. Insert Cases (Authentic Indian Court proceedings)
     await db.query(`
@@ -89,7 +89,7 @@ async function setupDatabase() {
       (4, 2, 4, 'Marcus Rivera Tech v. CloudByte Infotech (Trademark Infringement Suit)', 'Comm. Suit (IP) No. 94/2026', 'Intellectual Property Litigation', 'Suit under Sections 29 & 135 of Trade Marks Act, 1999 seeking permanent injunction restraining infringement of registered trademark ''CloudByte'' and damages.', 'On Hold', 'High Court of Karnataka (Commercial Division), Bengaluru', 'Hon''ble Sri Justice M. Nagaprasanna', '2026-03-05', '2026-12-31', 400000.00, 82000.00, 'CloudByte Infotech Pvt Ltd', 'Advocate D.L.N. Rao & Associates', 'Rivera Enterprise Cloud Solutions', 'Siddharth Rao (Chief Software Architect)'),
       (5, 1, 5, 'Horizon Life Sciences Labs v. Controller General of Patents', 'W.P.(C) No. 8920/2025', 'Writ Petition (Constitutional / Patent)', 'Writ Petition under Article 226 challenging Patent Office refusal order under Section 3(d) of Patents Act, 1970 concerning synthetic peptide therapeutic efficacy.', 'Closed', 'High Court of Delhi (Intellectual Property Division)', 'Hon''ble Smt. Justice Prathiba M. Singh', '2025-06-10', '2026-02-28', 1200000.00, 1184000.00, 'Union of India & Controller General of Patents, Designs and Trade Marks', 'Additional Solicitor General of India (ASG)', 'Horizon Pharmaceuticals Switzerland AG', 'Dr. Ramesh Narayan (Chief Scientific Officer)')
     `);
-    console.log('Cases seeded.');
+    // console.log('Cases seeded.');
 
     // 4. Insert Documents (Indian Legal Pleadings)
     await db.query(`
@@ -101,7 +101,7 @@ async function setupDatabase() {
       (4, 'Trade_Marks_Registry_Registration_Certificate_TM_542011.pdf', 'IP Trademark Certificate', '/uploads/uspto_cert.pdf', 620000, 2),
       (5, 'High_Court_Final_Judgment_and_Decree_WP_8920.pdf', 'Court Judgment / Decree', '/uploads/horizon_settlement.pdf', 4150000, 1)
     `);
-    console.log('Documents seeded.');
+    // console.log('Documents seeded.');
 
     // 5. Insert Time Entries (Advocate Fees in ₹ INR)
     await db.query(`
@@ -114,7 +114,7 @@ async function setupDatabase() {
       (1, 1, 'Appearance before City Civil Court Commercial Division for orders on I.A. No. 1/2026; summons issued to defendant', 1.25, 4500.00, '2026-04-03', 1),
       (2, 3, 'Due diligence conference with General Counsel of Sterling and independent SEBI compliance auditor', 2.25, 3500.00, '2026-04-04', 1)
     `);
-    console.log('Time entries seeded.');
+    // console.log('Time entries seeded.');
 
     // 6. Insert Calendar Events (Indian Courts, Cause Lists & Procedural Triggers)
     await db.query(`
@@ -126,7 +126,7 @@ async function setupDatabase() {
       (2, 4, 4, 'Commercial Division Injunction Hearing under Order 39 Rules 1 & 2 CPC', 'Hearing', '2026-04-25 10:30:00', '2026-04-25 12:00:00', 'High Court of Karnataka, Opp. Vidhana Soudha, Bengaluru', 'Court Hall 2', 'Hon''ble Sri Justice M. Nagaprasanna', 1440, 'Arguments on prima facie case and balance of convenience for restraining software trademark dilution.', 0, 'Critical'),
       (1, 1, 1, 'Statutory Written Statement 30-Day Deadline (Order VIII Rule 1 CPC)', 'Filing Deadline', '2026-05-15 17:00:00', '2026-05-15 17:00:00', 'Commercial Court Registry, Bengaluru', 'Filing Counter 2', 'Court Registry', 2880, 'Statutory 30-day deadline for defendant to file Written Statement under Commercial Courts Act 2015. Absolute 120-day forfeiture applies.', 1, 'Critical')
     `);
-    console.log('Calendar events seeded.');
+    // console.log('Calendar events seeded.');
 
     // 7. Insert Retainer Agreements (Vakalatnama & Legal Services Retainer)
     const retainerTerms = `LEGAL SERVICES ENGAGEMENT & VAKALATNAMA RETAINER AGREEMENT
@@ -171,7 +171,7 @@ Pursuant to the Advocates Act, 1961 and Bar Council of India Rules (Part VI, Cha
       (1, 1, 'Drafted Plaint and Statement of Truth under Order VI Rule 15A CPC; settled list of documents for Commercial Court filing', 3.50, 4500.00, 50000.00),
       (2, 6, 'Appearance before City Civil Court Commercial Division for orders on I.A. No. 1/2026', 1.25, 4500.00, 35000.00)
     `);
-    console.log('Invoices & Trust accounts seeded.');
+    // console.log('Invoices & Trust accounts seeded.');
 
     // 9. Insert Audit Logs
     await db.query(`
@@ -181,9 +181,9 @@ Pursuant to the Advocates Act, 1961 and Bar Council of India Rules (Part VI, Cha
       (1, 'Executed BCI-compliant Vakalatnama & Retainer Agreement v1.0', 'RETAINER', 1),
       (1, 'Received ₹2,00,000/- into Dedicated Client Escrow Account (ESCROW-KAR-2026-001)', 'TRUST_ACCOUNT', 1)
     `);
-    console.log('Audit logs seeded.');
+    // console.log('Audit logs seeded.');
   } else {
-    console.log(`Database already has ${existingUsers[0].count} users. Use 'npm run db:setup -- --force' to reseed.`);
+    // console.log(`Database already has ${existingUsers[0].count} users. Use 'npm run db:setup -- --force' to reseed.`);
   }
 
   await db.end();

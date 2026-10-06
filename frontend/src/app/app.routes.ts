@@ -36,6 +36,6 @@ export const routes: Routes = [
   { path: 'portal/dashboard', component: PortalDashboardComponent, canActivate: [clientAuthGuard] },
   { path: 'portal', redirectTo: 'portal/dashboard', pathMatch: 'full' },
 
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' }
 ];

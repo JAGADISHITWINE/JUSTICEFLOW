@@ -32,10 +32,17 @@ import { User } from '../../../core/models/models';
       </div>
 
       <div class="navbar-right">
+        <!-- Active Secure Session Indicator -->
+        <div class="session-timer-badge d-none d-sm-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-light text-secondary border-secondary-subtle"
+             title="Session is secure & active. Your work will not be interrupted.">
+          <i class="bi bi-shield-check text-success"></i>
+          <span class="small fw-semibold" style="font-size: 11px;">Active Session</span>
+        </div>
+
         <!-- Practice Area Quick Indicator -->
         <div class="practice-badge d-none d-lg-flex">
           <span class="pulse-indicator"></span>
-          <span>Law Firm Gateway Active</span>
+          <span>Active</span>
         </div>
 
         <!-- Notification Bell -->
@@ -55,16 +62,21 @@ import { User } from '../../../core/models/models';
               class="avatar-img"
             />
             <div class="user-meta d-none d-sm-block">
-              <span class="user-fullname">{{ currentUser?.name || 'Alexander Vance, Esq.' }}</span>
-              <span class="user-role">{{ currentUser?.role || 'Partner & Lead Attorney' }}</span>
+              <span class="user-fullname" [title]="currentUser?.name || ''">{{ displayName }}</span>
+              <span class="user-role" [title]="displayDesignation">{{ displayDesignation }}</span>
             </div>
             <i class="bi bi-chevron-down ms-1 text-muted" style="font-size: 0.75rem;"></i>
           </div>
 
           <div *ngIf="dropdownOpen" class="user-dropdown-card">
             <div class="dropdown-header">
-              <p class="mb-0 fw-semibold text-dark">{{ currentUser?.name }}</p>
-              <small class="text-muted">{{ currentUser?.email }}</small>
+              <div class="dropdown-user-name">{{ displayName }}</div>
+              <div class="dropdown-user-badge">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                  {{ displayDesignation }}
+                </span>
+              </div>
+              <small class="dropdown-user-email">{{ currentUser?.email }}</small>
             </div>
             <div class="dropdown-divider"></div>
             <a routerLink="/dashboard" class="dropdown-item-link" (click)="dropdownOpen = false">
@@ -257,11 +269,16 @@ import { User } from '../../../core/models/models';
               display: flex;
               flex-direction: column;
               line-height: 1.2;
+              max-width: 180px;
 
               .user-fullname {
                 font-size: 0.85rem;
                 font-weight: 600;
                 color: #2C3E50;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: block;
               }
 
               .user-role {
@@ -276,23 +293,61 @@ import { User } from '../../../core/models/models';
             position: absolute;
             top: 115%;
             right: 0;
-            width: 220px;
+            width: 300px;
+            max-width: calc(100vw - 2rem);
             background: #FFFFFF;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid #ECF0F1;
-            padding: 0.5rem 0;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E2E8F0;
+            padding: 0.4rem 0;
             z-index: 1060;
             animation: fadeIn 0.15s ease-out;
+            overflow: hidden;
 
             .dropdown-header {
-              padding: 0.5rem 1rem;
+              padding: 0.75rem 1rem;
+              background-color: #F8FAFC;
+              border-bottom: 1px solid #F1F5F9;
+
+              .dropdown-user-name {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #0F172A;
+                line-height: 1.3;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                margin-bottom: 0.35rem;
+              }
+
+              .dropdown-user-badge {
+                margin-bottom: 0.35rem;
+
+                .badge {
+                  font-size: 0.72rem;
+                  font-weight: 500;
+                  padding: 0.25rem 0.5rem;
+                  border-radius: 6px;
+                  white-space: normal;
+                  text-align: left;
+                  line-height: 1.35;
+                  display: inline-block;
+                  max-width: 100%;
+                  word-break: break-word;
+                }
+              }
+
+              .dropdown-user-email {
+                font-size: 0.76rem;
+                color: #64748B;
+                word-break: break-all;
+                display: block;
+              }
             }
 
             .dropdown-divider {
               height: 1px;
-              background-color: #ECF0F1;
-              margin: 0.4rem 0;
+              background-color: #F1F5F9;
+              margin: 0.35rem 0;
             }
 
             .dropdown-item-link {
@@ -328,7 +383,25 @@ export class AppNavbarComponent {
 
   dropdownOpen: boolean = false;
 
-  constructor(private authService: AuthService) {}
+  get displayName(): string {
+    const raw = this.currentUser?.name || 'Alexander Vance, Esq.';
+    const parenIndex = raw.indexOf('(');
+    if (parenIndex > 0) {
+      return raw.substring(0, parenIndex).trim();
+    }
+    return raw;
+  }
+
+  get displayDesignation(): string {
+    const raw = this.currentUser?.name || '';
+    const match = raw.match(/\((.*?)\)/);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    return this.currentUser?.role === 'admin' ? 'Managing Partner' : (this.currentUser?.role || 'Advocate');
+  }
+
+  constructor(private authService: AuthService) { }
 
   toggleSidebar() {
     this.sidebarToggle.emit();

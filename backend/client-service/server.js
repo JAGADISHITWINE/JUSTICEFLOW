@@ -41,6 +41,8 @@ app.get('/api/clients/stats/summary', authenticateToken, ClientController.getSta
 app.get('/api/clients', authenticateToken, ClientController.getAll);
 app.get('/api/clients/:id', authenticateToken, ClientController.getById);
 app.post('/api/clients', authenticateToken, ClientController.create);
+app.post('/api/clients/send-verification-otp', authenticateToken, ClientController.sendClientOtp);
+app.post('/api/clients/verify-email', authenticateToken, ClientController.verifyClientOtp);
 app.put('/api/clients/:id', authenticateToken, ClientController.update);
 app.delete('/api/clients/:id', authenticateToken, ClientController.delete);
 
@@ -51,6 +53,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 [Client Service] running on port ${PORT}`);
+  // console.log(`🚀 [Client Service] running on port ${PORT}`);
   await testConnection();
 });

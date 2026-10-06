@@ -5,7 +5,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const AuthController = require('./controllers/auth.controller');
-const { authenticateToken } = require('../shared/authMiddleware');
+const { authenticateToken, optionalAuthenticateToken } = require('../shared/authMiddleware');
 const { testConnection } = require('../database/db');
 
 const app = express();
@@ -22,7 +22,12 @@ app.get('/health', (req, res) => {
 
 // Auth Routes
 app.post('/api/auth/register', AuthController.register);
+app.post('/api/auth/send-registration-otp', AuthController.sendRegistrationOtp);
+app.post('/api/auth/forgot-password', AuthController.forgotPassword);
+app.post('/api/auth/reset-password', AuthController.resetPassword);
 app.post('/api/auth/login', AuthController.login);
+app.post('/api/auth/logout', optionalAuthenticateToken, AuthController.logout);
+app.post('/api/auth/heartbeat', authenticateToken, AuthController.heartbeat);
 app.get('/api/auth/me', authenticateToken, AuthController.getProfile);
 app.get('/api/auth/verify', authenticateToken, AuthController.verify);
 app.get('/api/auth/users', authenticateToken, AuthController.listUsers);
@@ -34,6 +39,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 [Auth Service] running on port ${PORT}`);
+  // console.log(`🚀 [Auth Service] running on port ${PORT}`);
   await testConnection();
 });

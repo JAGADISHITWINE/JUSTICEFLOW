@@ -19,11 +19,6 @@ import { NotificationService } from '../../core/services/notification.service';
           </div>
           <h2 class="portal-title mb-1">JUSTICEFLOW CLIENT ACCESS</h2>
           <p class="portal-subtitle mb-0">Secure Client Self-Service & Privilege Portal</p>
-          <div class="mt-2">
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
-              <i class="bi bi-lock-fill me-1"></i> 256-Bit Bank-Grade End-to-End Encryption
-            </span>
-          </div>
         </div>
 
         <!-- Login Card -->
@@ -57,12 +52,20 @@ import { NotificationService } from '../../core/services/notification.service';
                   <i class="bi bi-key"></i>
                 </span>
                 <input
-                  type="password"
-                  class="form-control border-start-0 ps-0"
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-control border-start-0 border-end-0 ps-0"
                   [(ngModel)]="password"
                   name="password"
                   placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
                   required>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary border-start-0 bg-transparent text-muted"
+                  (click)="showPassword = !showPassword"
+                  [title]="showPassword ? 'Hide password' : 'Show password'"
+                  tabindex="-1">
+                  <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+                </button>
               </div>
             </div>
 
@@ -212,12 +215,13 @@ export class PortalLoginComponent {
   email: string = 'legal@apexlogistic.com';
   password: string = 'password123';
   isLoading: boolean = false;
+  showPassword: boolean = false;
 
   constructor(
     private portalService: ClientPortalService,
     private router: Router,
     private notify: NotificationService
-  ) {}
+  ) { }
 
   fillDemoClient(): void {
     this.email = 'legal@apexlogistic.com';

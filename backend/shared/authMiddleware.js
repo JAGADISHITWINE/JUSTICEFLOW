@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { query } = require('../database/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'justiceflow_super_secret_jwt_key_2026_lawyer_secure';
 
@@ -13,6 +14,7 @@ function authenticateToken(req, res, next) {
       role: req.headers['x-user-role'] || 'lawyer',
       name: req.headers['x-user-name'] || ''
     };
+    query('UPDATE users SET last_activity = NOW() WHERE id = ? AND is_active_session = 1', [req.user.id]).catch(() => {});
     return next();
   }
 
@@ -33,6 +35,9 @@ function authenticateToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    if (decoded && decoded.id) {
+      query('UPDATE users SET last_activity = NOW() WHERE id = ? AND is_active_session = 1', [decoded.id]).catch(() => {});
+    }
     next();
   } catch (err) {
     return res.status(403).json({

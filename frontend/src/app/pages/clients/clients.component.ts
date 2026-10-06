@@ -110,7 +110,12 @@ import { ClientFormComponent } from './client-form.component';
                 </td>
                 <td>
                   <div class="small">
-                    <div><i class="bi bi-envelope text-muted me-1"></i> {{ client.email || 'No email' }}</div>
+                    <div>
+                      <i class="bi bi-envelope text-muted me-1"></i> {{ client.email || 'No email' }}
+                      <span *ngIf="client.is_email_verified" class="badge bg-success-subtle text-success border border-success ms-1 px-1 py-0" style="font-size: 0.68rem;" title="Email Verified">
+                        <i class="bi bi-patch-check-fill"></i> Verified
+                      </span>
+                    </div>
                     <div><i class="bi bi-telephone text-muted me-1"></i> {{ client.phone || 'No phone' }}</div>
                   </div>
                 </td>
@@ -171,6 +176,60 @@ import { ClientFormComponent } from './client-form.component';
         (save)="saveClient($event)"
         (cancel)="isModalOpen = false">
       </app-client-form>
+
+      <!-- Client Portal Credentials Onboarding Modal -->
+      <app-modal
+        [isOpen]="showCredentialsModal"
+        title="Client Retained - Portal Credentials"
+        icon="bi-shield-lock-fill"
+        size="md"
+        (close)="showCredentialsModal = false">
+        <div class="p-2">
+          <div class="alert alert-success d-flex align-items-center mb-3">
+            <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+            <div>
+              <strong>Client Retained Successfully!</strong>
+              <div class="small">The client record is active. Here are their access credentials for the Client Portal:</div>
+            </div>
+          </div>
+
+          <div class="card bg-light border p-3 mb-3">
+            <div class="mb-2 pb-2 border-bottom">
+              <label class="text-muted small fw-semibold d-block">Client Portal Login URL</label>
+              <div class="d-flex align-items-center justify-content-between">
+                <code class="text-primary fw-bold">/portal/login</code>
+                <a routerLink="/portal/login" target="_blank" class="btn btn-sm btn-outline-primary py-0">Open Portal</a>
+              </div>
+            </div>
+            <div class="mb-2 pb-2 border-bottom">
+              <label class="text-muted small fw-semibold d-block">Client Username (Email)</label>
+              <div class="fw-bold text-dark fs-6">{{ newClientCredentials?.username }}</div>
+            </div>
+            <div class="mb-1">
+              <label class="text-muted small fw-semibold d-block">Initial Access Password</label>
+              <div class="d-flex align-items-center gap-2">
+                <code class="fs-6 fw-bold bg-white px-3 py-1 border rounded text-dark">{{ newClientCredentials?.password }}</code>
+                <span class="badge bg-secondary-subtle text-secondary border">Auto-Generated</span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="newClientCredentials?.emailDispatched" class="alert alert-info py-2 small mb-0">
+            <i class="bi bi-envelope-check-fill me-1 text-primary"></i>
+            A welcome email containing these credentials and portal instructions has been dispatched to <strong>{{ newClientCredentials?.username }}</strong>.
+          </div>
+          <div *ngIf="!newClientCredentials?.emailDispatched" class="alert alert-warning py-2 small mb-0">
+            <i class="bi bi-info-circle-fill me-1"></i>
+            You can copy and securely share these credentials directly with your client (or configure your SMTP settings in <code>backend/.env</code> to send automated emails).
+          </div>
+        </div>
+
+        <div modal-footer>
+          <button class="btn btn-primary" (click)="showCredentialsModal = false">
+            <i class="bi bi-check-lg me-1"></i>Got It / Done
+          </button>
+        </div>
+      </app-modal>
 
       <!-- Delete Confirmation Modal -->
       <app-modal
@@ -237,6 +296,10 @@ export class ClientsComponent implements OnInit {
   isDeleteModalOpen: boolean = false;
   clientToDelete: Client | null = null;
 
+  // New Client Portal Credentials Modal State
+  showCredentialsModal: boolean = false;
+  newClientCredentials: any = null;
+
   constructor(
     private clientService: ClientService,
     private notificationService: NotificationService
@@ -294,7 +357,7 @@ export class ClientsComponent implements OnInit {
     this.saving = true;
     if (this.selectedClient && this.selectedClient.id) {
       this.clientService.updateClient(this.selectedClient.id, clientData).subscribe({
-        next: res => {
+        next: () => {
           this.saving = false;
           this.isModalOpen = false;
           this.notificationService.success('Client updated successfully.');
@@ -310,8 +373,12 @@ export class ClientsComponent implements OnInit {
         next: res => {
           this.saving = false;
           this.isModalOpen = false;
-          this.notificationService.success('Client created successfully.');
+          this.notificationService.success('Client retained successfully.');
           this.loadClients();
+          if (res.portal_credentials) {
+            this.newClientCredentials = res.portal_credentials;
+            this.showCredentialsModal = true;
+          }
         },
         error: err => {
           this.saving = false;

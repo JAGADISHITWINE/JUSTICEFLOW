@@ -7,11 +7,12 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AppButtonComponent } from '../../shared/components/button/button.component';
 import { AppFormInputComponent } from '../../shared/components/form-input/form-input.component';
 import { AppAlertComponent } from '../../shared/components/alert/alert.component';
+import { AppModalComponent } from '../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppButtonComponent, AppFormInputComponent, AppAlertComponent],
+  imports: [CommonModule, FormsModule, AppButtonComponent, AppFormInputComponent, AppAlertComponent, AppModalComponent],
   template: `
     <div class="login-page-container">
       <div class="login-card-box">
@@ -46,8 +47,35 @@ import { AppAlertComponent } from '../../shared/components/alert/alert.component
           </button>
         </div>
 
+        <!-- Active Session Conflict Box with Terminate Action -->
+        <div *ngIf="isConcurrentBlocked" class="session-conflict-box mb-3 p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-start shadow-sm">
+          <div class="d-flex align-items-center gap-2 mb-2 text-danger fw-bold">
+            <i class="bi bi-shield-lock-fill fs-5"></i>
+            <span>Active Session Detected</span>
+          </div>
+          <p class="small text-danger mb-3">
+            {{ errorMessage }}
+          </p>
+          <div class="d-flex flex-column gap-2">
+            <button
+              type="button"
+              class="btn btn-danger btn-sm w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2"
+              [disabled]="loading"
+              (click)="onForceLogin()">
+              <i class="bi bi-box-arrow-in-right"></i>
+              <span>Terminate Previous Session & Sign In</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm w-100"
+              (click)="isConcurrentBlocked = false">
+              Cancel
+            </button>
+          </div>
+        </div>
+
         <app-alert
-          *ngIf="errorMessage"
+          *ngIf="errorMessage && !isConcurrentBlocked"
           type="error"
           [message]="errorMessage"
           (dismiss)="errorMessage = ''">
@@ -90,11 +118,11 @@ import { AppAlertComponent } from '../../shared/components/alert/alert.component
               <input class="form-check-input" type="checkbox" id="rememberMe" [(ngModel)]="rememberMe" name="rememberMe">
               <label class="form-check-label text-muted small" for="rememberMe">Remember me</label>
             </div>
-            <a href="javascript:void(0)" class="small text-secondary" (click)="fillDemo('admin')">Forgot password?</a>
+            <a href="javascript:void(0)" class="small text-secondary fw-semibold text-decoration-none" (click)="openForgotPassword()">Forgot password?</a>
           </div>
 
           <app-button
-            [label]="isLoginMode ? 'Sign In to Portal' : 'Register Law Firm Account'"
+            [label]="isLoginMode ? 'Sign In to Portal' : 'Verify Email & Create Account'"
             [loading]="loading"
             type="submit"
             variant="primary"
@@ -116,22 +144,184 @@ import { AppAlertComponent } from '../../shared/components/alert/alert.component
             </button>
           </div>
         </div>
-
-        <!-- Switch to Client Portal -->
-        <div class="text-center pt-3 mt-3 border-top d-flex flex-column align-items-center gap-1">
-          <span class="text-muted small">Are you a client looking for your case?</span>
-          <a routerLink="/portal/login" class="btn btn-sm btn-link text-success text-decoration-none fw-bold d-inline-flex align-items-center gap-1">
-            <i class="bi bi-shield-lock-fill"></i>
-            <span>Switch to Client Self-Service Portal</span>
-            <i class="bi bi-arrow-right"></i>
-          </a>
-        </div>
-
-        <div class="system-status-indicator mt-3 text-center">
-          <span class="dot-online"></span>
-          <span>Gateway: Port 5000 | MySQL Connected</span>
-        </div>
       </div>
+
+      <!-- FORGOT PASSWORD MODAL -->
+      <app-modal
+        [isOpen]="showForgotModal"
+        [title]="forgotStep === 1 ? 'Reset Account Password' : 'Enter Verification Code & New Password'"
+        icon="bi-shield-lock"
+        size="md"
+        [hasFooter]="false"
+        (close)="closeForgotModal()">
+        <div class="p-2">
+          <!-- Step 1: Request OTP -->
+          <div *ngIf="forgotStep === 1">
+            <p class="text-muted small mb-3">
+              Enter the email address associated with your JusticeFlow account. We will send a 6-digit verification code to reset your password.
+            </p>
+
+            <app-alert *ngIf="forgotError" type="error" [message]="forgotError" class="mb-3"></app-alert>
+
+            <div class="mb-3">
+              <app-form-input
+                label="Registered Email Address"
+                type="email"
+                placeholder="you@justiceflow.com"
+                icon="bi-envelope"
+                [required]="true"
+                [(ngModel)]="forgotEmail">
+              </app-form-input>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <app-button
+                label="Cancel"
+                variant="outline"
+                (btnClick)="closeForgotModal()">
+              </app-button>
+              <app-button
+                label="Send Verification Code"
+                variant="primary"
+                [loading]="forgotLoading"
+                icon="bi-send"
+                (btnClick)="submitForgotStep1()">
+              </app-button>
+            </div>
+          </div>
+
+          <!-- Step 2: Verify OTP and Set New Password -->
+          <div *ngIf="forgotStep === 2">
+            <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
+              <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
+              <div>
+                Verification code dispatched to <strong>{{ forgotEmail }}</strong>.
+              </div>
+            </div>
+
+            <!-- Demo helper badge for immediate testing -->
+            <div *ngIf="forgotDemoOtp" class="alert alert-warning py-2 px-3 small mb-3">
+              <i class="bi bi-key-fill me-1"></i>
+              <strong>Test Environment OTP:</strong> <code class="fw-bold fs-6 ms-1">{{ forgotDemoOtp }}</code>
+            </div>
+
+            <app-alert *ngIf="forgotError" type="error" [message]="forgotError" class="mb-3"></app-alert>
+
+            <div class="mb-3">
+              <app-form-input
+                label="6-Digit Verification Code"
+                type="text"
+                placeholder="123456"
+                icon="bi-key"
+                [required]="true"
+                [(ngModel)]="forgotOtp">
+              </app-form-input>
+            </div>
+
+            <div class="mb-3">
+              <app-form-input
+                label="New Password"
+                type="password"
+                placeholder="••••••••"
+                icon="bi-lock"
+                [required]="true"
+                [(ngModel)]="forgotNewPassword">
+              </app-form-input>
+            </div>
+
+            <div class="mb-3">
+              <app-form-input
+                label="Confirm New Password"
+                type="password"
+                placeholder="••••••••"
+                icon="bi-lock-fill"
+                [required]="true"
+                [(ngModel)]="forgotConfirmPassword">
+              </app-form-input>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <button
+                type="button"
+                class="btn btn-link text-decoration-none small p-0 text-muted"
+                (click)="forgotStep = 1">
+                <i class="bi bi-arrow-left me-1"></i>Change Email
+              </button>
+              <div class="d-flex gap-2">
+                <app-button
+                  label="Cancel"
+                  variant="outline"
+                  (btnClick)="closeForgotModal()">
+                </app-button>
+                <app-button
+                  label="Reset Password"
+                  variant="primary"
+                  [loading]="forgotLoading"
+                  icon="bi-check2-circle"
+                  (btnClick)="submitForgotStep2()">
+                </app-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-modal>
+
+      <!-- REGISTRATION EMAIL VERIFICATION OTP MODAL -->
+      <app-modal
+        [isOpen]="showRegisterOtpModal"
+        title="Verify Your Email Address"
+        icon="bi-envelope-check"
+        size="md"
+        [hasFooter]="false"
+        (close)="showRegisterOtpModal = false">
+        <div class="p-2">
+          <p class="text-muted small mb-3">
+            To activate your firm account, please enter the 6-digit verification code sent to <strong>{{ email }}</strong>.
+          </p>
+
+          <div *ngIf="registerDemoOtp" class="alert alert-warning py-2 px-3 small mb-3">
+            <i class="bi bi-shield-check me-1"></i>
+            <strong>Test Environment OTP:</strong> <code class="fw-bold fs-6 ms-1">{{ registerDemoOtp }}</code>
+          </div>
+
+          <app-alert *ngIf="regOtpError" type="error" [message]="regOtpError" class="mb-3"></app-alert>
+
+          <div class="mb-3">
+            <app-form-input
+              label="6-Digit Verification Code"
+              type="text"
+              placeholder="123456"
+              icon="bi-key"
+              [required]="true"
+              [(ngModel)]="regOtp">
+            </app-form-input>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <button
+              type="button"
+              class="btn btn-link text-decoration-none small p-0 text-primary"
+              [disabled]="regOtpLoading"
+              (click)="resendRegisterOtp()">
+              <i class="bi bi-arrow-repeat me-1"></i>Resend Code
+            </button>
+            <div class="d-flex gap-2">
+              <app-button
+                label="Cancel"
+                variant="outline"
+                (btnClick)="showRegisterOtpModal = false">
+              </app-button>
+              <app-button
+                label="Confirm & Activate"
+                variant="primary"
+                [loading]="regOtpLoading"
+                icon="bi-check-circle"
+                (btnClick)="confirmRegistration()">
+              </app-button>
+            </div>
+          </div>
+        </div>
+      </app-modal>
     </div>
   `,
   styles: [`
@@ -302,6 +492,25 @@ export class LoginComponent {
   rememberMe: boolean = true;
   loading: boolean = false;
   errorMessage: string = '';
+  isConcurrentBlocked: boolean = false;
+
+  // Forgot password modal state
+  showForgotModal: boolean = false;
+  forgotStep: number = 1;
+  forgotEmail: string = '';
+  forgotOtp: string = '';
+  forgotDemoOtp: string = '';
+  forgotNewPassword: string = '';
+  forgotConfirmPassword: string = '';
+  forgotLoading: boolean = false;
+  forgotError: string = '';
+
+  // Register OTP verification modal state
+  showRegisterOtpModal: boolean = false;
+  regOtp: string = '';
+  registerDemoOtp: string = '';
+  regOtpLoading: boolean = false;
+  regOtpError: string = '';
 
   private returnUrl: string = '/dashboard';
 
@@ -314,13 +523,28 @@ export class LoginComponent {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   }
 
+  ngOnInit() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigateByUrl(this.returnUrl);
+      return;
+    }
+
+    const qp = this.route.snapshot.queryParams;
+    if (qp['msg']) {
+      this.errorMessage = qp['msg'];
+    }
+  }
+
   setMode(isLogin: boolean) {
     this.isLoginMode = isLogin;
     this.errorMessage = '';
+    this.isConcurrentBlocked = false;
   }
 
   fillDemo(role: 'admin' | 'lawyer') {
     this.isLoginMode = true;
+    this.isConcurrentBlocked = false;
+    this.errorMessage = '';
     if (role === 'admin') {
       this.email = 'admin@justiceflow.com';
       this.password = 'password123';
@@ -328,6 +552,153 @@ export class LoginComponent {
       this.email = 'sarah.jenkins@justiceflow.com';
       this.password = 'password123';
     }
+  }
+
+  openForgotPassword() {
+    this.showForgotModal = true;
+    this.forgotStep = 1;
+    this.forgotEmail = this.email || '';
+    this.forgotOtp = '';
+    this.forgotDemoOtp = '';
+    this.forgotNewPassword = '';
+    this.forgotConfirmPassword = '';
+    this.forgotError = '';
+    this.forgotLoading = false;
+  }
+
+  closeForgotModal() {
+    this.showForgotModal = false;
+    this.forgotError = '';
+  }
+
+  submitForgotStep1() {
+    if (!this.forgotEmail) {
+      this.forgotError = 'Please enter your registered email address.';
+      return;
+    }
+    this.forgotError = '';
+    this.forgotLoading = true;
+    this.authService.sendPasswordResetCode(this.forgotEmail).subscribe({
+      next: res => {
+        this.forgotLoading = false;
+        this.forgotStep = 2;
+        if (res.otp) {
+          this.forgotDemoOtp = res.otp;
+        }
+        this.notificationService.info('Verification code sent to your email.');
+      },
+      error: err => {
+        this.forgotLoading = false;
+        this.forgotError = err.error?.message || err.message || 'Unable to send verification code. Please check your email.';
+      }
+    });
+  }
+
+  submitForgotStep2() {
+    if (!this.forgotOtp || this.forgotOtp.length < 4) {
+      this.forgotError = 'Please enter the 6-digit verification code.';
+      return;
+    }
+    if (!this.forgotNewPassword) {
+      this.forgotError = 'Please enter a new password.';
+      return;
+    }
+    if (this.forgotNewPassword.length < 6) {
+      this.forgotError = 'Password must be at least 6 characters long.';
+      return;
+    }
+    if (this.forgotNewPassword !== this.forgotConfirmPassword) {
+      this.forgotError = 'Passwords do not match.';
+      return;
+    }
+
+    this.forgotError = '';
+    this.forgotLoading = true;
+    this.authService.resetPassword({
+      email: this.forgotEmail,
+      otp: this.forgotOtp,
+      newPassword: this.forgotNewPassword
+    }).subscribe({
+      next: () => {
+        this.forgotLoading = false;
+        this.closeForgotModal();
+        this.notificationService.success('Password reset successfully! You can now sign in.');
+        this.isLoginMode = true;
+        this.email = this.forgotEmail;
+        this.password = '';
+      },
+      error: err => {
+        this.forgotLoading = false;
+        this.forgotError = err.error?.message || err.message || 'Failed to reset password. Please verify the code.';
+      }
+    });
+  }
+
+  resendRegisterOtp() {
+    if (!this.email) return;
+    this.regOtpLoading = true;
+    this.regOtpError = '';
+    this.authService.sendRegistrationOtp(this.email).subscribe({
+      next: res => {
+        this.regOtpLoading = false;
+        if (res.otp) this.registerDemoOtp = res.otp;
+        this.notificationService.info('A new verification code has been dispatched.');
+      },
+      error: err => {
+        this.regOtpLoading = false;
+        this.regOtpError = err.error?.message || 'Failed to resend code.';
+      }
+    });
+  }
+
+  confirmRegistration() {
+    if (!this.regOtp || this.regOtp.trim().length === 0) {
+      this.regOtpError = 'Please enter the verification code.';
+      return;
+    }
+
+    this.regOtpLoading = true;
+    this.regOtpError = '';
+    this.authService.register({
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      otp: this.regOtp.trim()
+    }).subscribe({
+      next: () => {
+        this.regOtpLoading = false;
+        this.showRegisterOtpModal = false;
+        this.notificationService.success('Email verified and lawyer account created successfully!');
+        this.router.navigateByUrl(this.returnUrl);
+      },
+      error: err => {
+        this.regOtpLoading = false;
+        this.regOtpError = err.error?.message || err.message || 'Account registration failed.';
+      }
+    });
+  }
+
+  onForceLogin() {
+    if (!this.email || !this.password) return;
+    this.loading = true;
+    this.errorMessage = '';
+    this.authService.login({
+      email: this.email,
+      password: this.password,
+      forceUnlock: true,
+      currentToken: this.authService.getToken() || undefined
+    }).subscribe({
+      next: res => {
+        this.loading = false;
+        this.isConcurrentBlocked = false;
+        this.notificationService.success(`Previous session terminated. Welcome back, ${res.data.user.name}!`);
+        this.router.navigateByUrl(this.returnUrl);
+      },
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || err.message || 'Failed to terminate previous session. Please verify your credentials.';
+      }
+    });
   }
 
   onSubmit() {
@@ -340,7 +711,12 @@ export class LoginComponent {
     this.loading = true;
 
     if (this.isLoginMode) {
-      this.authService.login({ email: this.email, password: this.password }).subscribe({
+      this.isConcurrentBlocked = false;
+      this.authService.login({ 
+        email: this.email, 
+        password: this.password,
+        currentToken: this.authService.getToken() || undefined
+      }).subscribe({
         next: res => {
           this.loading = false;
           this.notificationService.success(`Welcome back, ${res.data.user.name}!`);
@@ -348,19 +724,27 @@ export class LoginComponent {
         },
         error: err => {
           this.loading = false;
-          this.errorMessage = err.message || 'Authentication failed. Please verify your credentials.';
+          if (err.error && err.error.isConcurrentSession) {
+            this.isConcurrentBlocked = true;
+          }
+          this.errorMessage = err.error?.message || err.message || 'Authentication failed. Please verify your credentials.';
         }
       });
     } else {
-      this.authService.register({ name: this.name, email: this.email, password: this.password }).subscribe({
+      // Step 1 of registration: Request OTP to verify email
+      this.authService.sendRegistrationOtp(this.email).subscribe({
         next: res => {
           this.loading = false;
-          this.notificationService.success('Lawyer account created successfully!');
-          this.router.navigateByUrl(this.returnUrl);
+          if (res.otp) {
+            this.registerDemoOtp = res.otp;
+          }
+          this.regOtp = '';
+          this.regOtpError = '';
+          this.showRegisterOtpModal = true;
         },
         error: err => {
           this.loading = false;
-          this.errorMessage = err.message || 'Account registration failed.';
+          this.errorMessage = err.error?.message || err.message || 'Failed to send email verification code.';
         }
       });
     }

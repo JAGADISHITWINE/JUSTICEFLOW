@@ -16,7 +16,7 @@ import { AppSidebarComponent } from './shared/components/sidebar/sidebar.compone
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  isAuthPage: boolean = false;
+  isAuthPage: boolean = true;
   sidebarCollapsed: boolean = false;
   sidebarMobileOpen: boolean = false;
   currentUser: User | null = null;
@@ -26,13 +26,28 @@ export class AppComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationService
-  ) {}
+  ) {
+    // Check path immediately on construction
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    this.isAuthPage = this.checkIsAuthPage(path);
+  }
+
+  private checkIsAuthPage(url: string): boolean {
+    if (!url) return true; // Default to standalone if path is empty/root before redirect
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    return cleanUrl === '' || cleanUrl === '/' || cleanUrl.includes('/login') || cleanUrl.startsWith('/portal');
+  }
 
   ngOnInit(): void {
+    // Initial check with router URL or window path
+    const initialUrl = this.router.url || (typeof window !== 'undefined' ? window.location.pathname : '');
+    this.isAuthPage = this.checkIsAuthPage(initialUrl);
+
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
-        this.isAuthPage = event.url.includes('/login') || event.url.includes('/portal');
+        const url = event.urlAfterRedirects || event.url;
+        this.isAuthPage = this.checkIsAuthPage(url);
         this.sidebarMobileOpen = false;
       });
 

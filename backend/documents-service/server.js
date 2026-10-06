@@ -67,6 +67,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 [Documents Service] running on port ${PORT}`);
+  // console.log(`🚀 [Documents Service] running on port ${PORT}`);
   await testConnection();
 });

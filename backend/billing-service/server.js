@@ -43,6 +43,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 [Billing Service] running on port ${PORT}`);
+  // console.log(`🚀 [Billing Service] running on port ${PORT}`);
   await testConnection();
 });

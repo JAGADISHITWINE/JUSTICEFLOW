@@ -57,14 +57,14 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`⚖️  JUSTICEFLOW API GATEWAY RUNNING ON PORT ${PORT}`);
-  console.log(`======================================================`);
-  console.log(`👉 Auth Service:         http://localhost:3001`);
-  console.log(`👉 Client Service:       http://localhost:3002`);
-  console.log(`👉 Case Service:         http://localhost:3003`);
-  console.log(`👉 Documents Service:    http://localhost:3004`);
-  console.log(`👉 Time Tracking:        http://localhost:3005`);
-  console.log(`👉 Gateway Health:       http://localhost:${PORT}/health`);
-  console.log(`======================================================\n`);
+  // console.log(`\n======================================================`);
+  // console.log(`⚖️  JUSTICEFLOW API GATEWAY RUNNING ON PORT ${PORT}`);
+  // console.log(`======================================================`);
+  // console.log(`👉 Auth Service:         http://localhost:3001`);
+  // console.log(`👉 Client Service:       http://localhost:3002`);
+  // console.log(`👉 Case Service:         http://localhost:3003`);
+  // console.log(`👉 Documents Service:    http://localhost:3004`);
+  // console.log(`👉 Time Tracking:        http://localhost:3005`);
+  // console.log(`👉 Gateway Health:       http://localhost:${PORT}/health`);
+  // console.log(`======================================================\n`);
 });

@@ -46,6 +46,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`📅 [Calendar Service] running on port ${PORT}`);
+  // console.log(`📅 [Calendar Service] running on port ${PORT}`);
   await testConnection();
 });

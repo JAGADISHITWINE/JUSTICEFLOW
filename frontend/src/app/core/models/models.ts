@@ -4,6 +4,7 @@ export interface User {
   name: string;
   avatar?: string;
   role: 'admin' | 'lawyer' | 'assistant';
+  is_email_verified?: boolean;
   created_at?: string;
 }
 
@@ -18,6 +19,8 @@ export interface Client {
   state?: string;
   zip_code?: string;
   status: 'Active' | 'Inactive';
+  is_email_verified?: boolean;
+  email_verified_at?: string;
   assigned_lawyer?: string;
   case_count?: number;
   total_budget?: number;

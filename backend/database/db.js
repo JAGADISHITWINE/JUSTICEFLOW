@@ -29,7 +29,7 @@ async function query(sql, params = []) {
 async function testConnection() {
   try {
     const connection = await pool.getConnection();
-    console.log('[MySQL] Connected to database successfully');
+    // console.log('[MySQL] Connected to database successfully');
     connection.release();
     return true;
   } catch (err) {

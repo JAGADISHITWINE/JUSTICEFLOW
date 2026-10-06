@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(255) NOT NULL,
   avatar VARCHAR(255),
   role ENUM('admin', 'lawyer', 'assistant') DEFAULT 'lawyer',
+  is_active_session TINYINT(1) DEFAULT 0,
+  active_session_token VARCHAR(500),
+  session_started_at TIMESTAMP NULL,
+  last_activity TIMESTAMP NULL,
+  is_email_verified TINYINT(1) DEFAULT 1,
+  reset_otp VARCHAR(10) NULL,
+  reset_otp_expires_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -28,6 +35,9 @@ CREATE TABLE IF NOT EXISTS clients (
   state VARCHAR(100),
   zip_code VARCHAR(20),
   status ENUM('Active', 'Inactive') DEFAULT 'Active',
+  is_email_verified TINYINT(1) DEFAULT 0,
+  email_verified_at TIMESTAMP NULL,
+  portal_password VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

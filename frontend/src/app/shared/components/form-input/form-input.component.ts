@@ -20,10 +20,10 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
         <span *ngIf="required" class="text-danger">*</span>
       </label>
 
-      <div class="input-wrapper" [class.has-icon]="!!icon" [class.is-invalid]="hasError">
+      <div class="input-wrapper" [class.has-icon]="!!icon" [class.has-toggle]="isPasswordField" [class.is-invalid]="hasError">
         <i *ngIf="icon" class="input-icon bi" [ngClass]="icon"></i>
         <input
-          [type]="type"
+          [type]="currentType"
           [placeholder]="placeholder"
           [disabled]="disabled"
           [value]="value"
@@ -32,6 +32,15 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
           class="form-control-custom"
           [class.has-error]="hasError"
         />
+        <button
+          *ngIf="isPasswordField"
+          type="button"
+          class="btn-toggle-password"
+          (click)="togglePasswordVisibility()"
+          [title]="showPassword ? 'Hide password' : 'Show password'"
+          tabindex="-1">
+          <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+        </button>
       </div>
 
       <small *ngIf="hint && !hasError" class="form-hint">{{ hint }}</small>
@@ -64,10 +73,44 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
           color: #7F8C8D;
           font-size: 1rem;
           pointer-events: none;
+          z-index: 2;
         }
 
         &.has-icon .form-control-custom {
           padding-left: 2.5rem;
+        }
+
+        &.has-toggle .form-control-custom {
+          padding-right: 2.75rem;
+        }
+
+        .btn-toggle-password {
+          position: absolute;
+          right: 0.5rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: transparent;
+          border: none;
+          color: #64748B;
+          padding: 0.35rem 0.5rem;
+          font-size: 1.05rem;
+          cursor: pointer;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.15s, background-color 0.15s;
+          z-index: 3;
+
+          &:hover {
+            color: #1E293B;
+            background-color: #F1F5F9;
+          }
+
+          &:focus {
+            outline: none;
+            color: #2563EB;
+          }
         }
       }
 
@@ -129,6 +172,23 @@ export class AppFormInputComponent implements ControlValueAccessor {
   @Input() hasError: boolean = false;
   @Input() errorMessage?: string;
   @Input() disabled: boolean = false;
+
+  showPassword: boolean = false;
+
+  get isPasswordField(): boolean {
+    return this.type === 'password';
+  }
+
+  get currentType(): string {
+    if (this.isPasswordField) {
+      return this.showPassword ? 'text' : 'password';
+    }
+    return this.type;
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   value: any = '';
 

@@ -17,8 +17,8 @@ export class ClientService {
     return this.api.get<{ success: boolean; data: Client }>(`clients/${id}`);
   }
 
-  createClient(client: Partial<Client>): Observable<{ success: boolean; message: string; data: Client }> {
-    return this.api.post<{ success: boolean; message: string; data: Client }>('clients', client);
+  createClient(client: Partial<Client>): Observable<{ success: boolean; message: string; data: Client; portal_credentials?: { username: string; password: string; portalUrl: string; emailDispatched?: boolean } }> {
+    return this.api.post<{ success: boolean; message: string; data: Client; portal_credentials?: { username: string; password: string; portalUrl: string; emailDispatched?: boolean } }>('clients', client);
   }
 
   updateClient(id: number, client: Partial<Client>): Observable<{ success: boolean; message: string; data: Client }> {
@@ -32,4 +32,13 @@ export class ClientService {
   getClientStats(): Observable<{ success: boolean; data: { total_clients: number; active_clients: number; inactive_clients: number } }> {
     return this.api.get<{ success: boolean; data: any }>('clients/stats/summary');
   }
+
+  sendClientVerificationOtp(email: string, clientName?: string): Observable<{ success: boolean; message: string; otp: string }> {
+    return this.api.post<{ success: boolean; message: string; otp: string }>('clients/send-verification-otp', { email, clientName });
+  }
+
+  verifyClientEmail(email: string, otp: string, clientId?: number): Observable<{ success: boolean; verified: boolean; message: string }> {
+    return this.api.post<{ success: boolean; verified: boolean; message: string }>('clients/verify-email', { email, otp, clientId });
+  }
 }
+
