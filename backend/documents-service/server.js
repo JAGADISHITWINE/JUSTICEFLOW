@@ -53,6 +53,12 @@ app.get('/api/documents/:id', authenticateToken, DocumentController.getById);
 app.get('/api/documents/:id/download', optionalAuthenticateToken, DocumentController.download);
 app.post('/api/documents/upload', authenticateToken, upload.single('file'), DocumentController.upload);
 app.delete('/api/documents/:id', authenticateToken, DocumentController.delete);
+app.get('/api/documents/:id/summarize-offline', optionalAuthenticateToken, DocumentController.summarizeOffline);
+app.post('/api/documents/summarize-offline', optionalAuthenticateToken, DocumentController.summarizeOffline);
+app.get('/api/documents/:id/case-rag-analysis', optionalAuthenticateToken, DocumentController.getCaseRagAnalysis);
+app.get('/api/documents/case/:caseId/master-timeline', optionalAuthenticateToken, DocumentController.getCaseTimeline);
+app.get('/api/cases/:caseId/master-timeline', optionalAuthenticateToken, DocumentController.getCaseTimeline);
+app.get('/api/documents/client/:clientId/intelligence', optionalAuthenticateToken, DocumentController.getClientIntelligence);
 
 // AI Legal Assistant (Co-Counsel) Routes
 app.post('/api/documents/ai/polish-time', authenticateToken, AiAssistantController.polishTime);

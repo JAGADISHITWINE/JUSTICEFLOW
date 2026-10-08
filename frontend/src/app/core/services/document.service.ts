@@ -32,4 +32,23 @@ export class DocumentService {
       ? `${environment.apiUrl}/documents/${id}/download?token=${encodeURIComponent(token)}`
       : `${environment.apiUrl}/documents/${id}/download`;
   }
+
+  summarizeOffline(id?: number, payload?: { text?: string; title?: string }): Observable<any> {
+    if (id) {
+      return this.api.get(`documents/${id}/summarize-offline`);
+    }
+    return this.api.post('documents/summarize-offline', payload);
+  }
+
+  getCaseRagAnalysis(id: number, scope: string = 'client'): Observable<any> {
+    return this.api.get(`documents/${id}/case-rag-analysis?scope=${scope}`);
+  }
+
+  getClientIntelligence(clientId: number): Observable<any> {
+    return this.api.get(`documents/client/${clientId}/intelligence`);
+  }
+
+  getCaseMasterTimeline(caseId: number): Observable<any> {
+    return this.api.get(`documents/case/${caseId}/master-timeline`);
+  }
 }

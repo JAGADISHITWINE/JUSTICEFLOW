@@ -97,4 +97,11 @@ export class AiAssistantService {
   }): Observable<{ success: boolean; message: string; data: IndianStatuteResponse }> {
     return this.api.post('documents/ai/statute-lookup', payload);
   }
+
+  summarizeDocumentOffline(payload: {
+    text: string;
+    title?: string;
+  }): Observable<{ success: boolean; data: any; message?: string }> {
+    return this.api.post('documents/summarize-offline', payload);
+  }
 }

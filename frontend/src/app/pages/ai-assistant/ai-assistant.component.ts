@@ -550,14 +550,23 @@ import { AppButtonComponent } from '../../shared/components/button/button.compon
               </textarea>
             </div>
 
-            <button
-              class="btn btn-primary btn-sm w-100 py-2"
-              (click)="summarizeDoc()"
-              [disabled]="isSummarizing || !docText">
-              <i class="bi bi-file-earmark-ruled me-1"></i>
-              {{ isSummarizing ? 'Synthesizing Executive Brief...' : 'Generate 1-Page Executive Brief' }}
-            </button>
-          </app-card>
+              <div class="d-flex flex-column gap-2">
+                <button
+                  class="btn btn-success btn-sm w-100 py-2"
+                  (click)="summarizeDocOffline()"
+                  [disabled]="isSummarizing || !docText">
+                  <i class="bi bi-shield-check me-1"></i>
+                  {{ isSummarizing ? 'Analyzing Locally...' : '⚡ Instant Local Brief (Zero AI / 100% Private)' }}
+                </button>
+                <button
+                  class="btn btn-outline-primary btn-sm w-100 py-2"
+                  (click)="summarizeDoc()"
+                  [disabled]="isSummarizing || !docText">
+                  <i class="bi bi-file-earmark-ruled me-1"></i>
+                  {{ isSummarizing ? 'Synthesizing...' : 'Generate 1-Page Executive Brief (LLM)' }}
+                </button>
+              </div>
+            </app-card>
         </div>
 
         <div class="col-12 col-lg-7">
@@ -994,6 +1003,38 @@ A: The consignee issued a notice of rejection under the Carriage by Road Act upo
       error: (err) => {
         this.isSummarizing = false;
         this.notify.error('Summarization failed');
+      }
+    });
+  }
+
+  summarizeDocOffline(): void {
+    if (!this.docText) return;
+    this.isSummarizing = true;
+
+    this.aiService.summarizeDocumentOffline({
+      text: this.docText,
+      title: this.docType
+    }).subscribe({
+      next: (res) => {
+        this.isSummarizing = false;
+        if (res.success && res.data) {
+          const d = res.data;
+          this.summaryResult = {
+            doc_type: `${d.document_subject || 'Document'} (Air-Gapped Universal NLP)`,
+            word_count: d.total_word_count,
+            compression_ratio: `Analyzed in ${d.processing_time_ms}ms (Zero AI / Pattern-Free)`,
+            executive_overview: d.executive_summary,
+            key_witness_admissions: (d.highlights?.core_themes_and_topics?.length ? d.highlights.core_themes_and_topics : ['No high-frequency topic clusters detected']),
+            exposure_and_vulnerabilities: (d.highlights?.quantitative_metrics_and_specs?.length ? d.highlights.quantitative_metrics_and_specs : ['No quantitative metrics detected']),
+            actionable_recommendations: (d.highlights?.action_directives_and_rules?.length ? d.highlights.action_directives_and_rules : ['Review full document context']),
+            summary_date: new Date().toISOString()
+          };
+          this.notify.success(`⚡ Analyzed in ${d.processing_time_ms}ms without sending data outside!`);
+        }
+      },
+      error: () => {
+        this.isSummarizing = false;
+        this.notify.error('Local summarization failed');
       }
     });
   }

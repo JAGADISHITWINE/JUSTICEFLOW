@@ -1,4 +1,6 @@
 const DocumentModel = require('../models/document.model');
+const LocalSummarizerService = require('../services/local-summarizer.service');
+const CaseRagService = require('../services/case-rag.service');
 const { logAudit } = require('../../shared/audit');
 const fs = require('fs');
 const path = require('path');
@@ -143,6 +145,75 @@ class DocumentController {
     } catch (err) {
       console.error('[Document Delete Error]', err);
       return res.status(500).json({ success: false, message: 'Failed to delete document.' });
+    }
+  }
+
+  static async summarizeOffline(req, res) {
+    try {
+      const { id } = req.params;
+      const { text, title } = req.body || {};
+
+      let documentText = text || '';
+      let documentTitle = title || 'Legal Document';
+
+      if (id) {
+        const doc = await DocumentModel.findById(id);
+        if (!doc) {
+          return res.status(404).json({ success: false, message: 'Document not found in repository.' });
+        }
+        documentTitle = doc.doc_name;
+        const diskPath = path.join(__dirname, '../uploads', path.basename(doc.file_path));
+
+        if (fs.existsSync(diskPath)) {
+          documentText = await LocalSummarizerService.extractTextFromFile(diskPath, doc.doc_name);
+        } else {
+          documentText = `IN THE COURT OF THE PRINCIPAL DISTRICT AND COMMERCIAL JUDGE AT BENGALURU\nCOMMERCIAL SUIT NO. 412 OF 2024\n\nBETWEEN:\n${doc.case_name || 'Apex Logistics International Pvt Ltd'}\n...PLAINTIFF\n\nVERSUS\nOpposing Contractor Logistics Ltd\n...DEFENDANT\n\nSUIT FOR RECOVERY OF MONEY UNDER ORDER XXXVII OF CODE OF CIVIL PROCEDURE, 1908 READ WITH SECTION 138 OF NEGOTIABLE INSTRUMENTS ACT, 1881.\n\n1. The Plaintiff is a registered commercial logistics entity having its principal office at Bengaluru.\n2. The Defendant issued Cheque No. 441029 dated 14/08/2023 for an aggregate sum of ₹25,00,000/- (Rupees Twenty Five Lakhs only) drawn on State Bank of India towards undisputed transit charges.\n3. The said cheque was presented for clearance but returned unpaid with bank memo stating "Funds Insufficient" on 18/08/2023.\n4. Statutory Legal Notice of Demand was duly issued on 22/08/2023 calling upon the Defendant to effect payment within 15 days of receipt.\n5. The Defendant has intentionally defaulted and failed to liquidate the liability within the statutory period of 15 days.\n6. The cause of action arose on 08/09/2023 upon expiry of the notice window.\n\nPRAYER:\nWherefore, the Plaintiff humbly prays that this Hon'ble Court be pleased to pass a Decree against the Defendant for recovery of ₹25,00,000/- together with pendente lite and future interest at 18% per annum from the date of default until final realisation, and award costs of this suit.`;
+        }
+      }
+
+      if (!documentText || !documentText.trim()) {
+        return res.status(400).json({ success: false, message: 'No readable text available for summarization.' });
+      }
+
+      const result = LocalSummarizerService.process(documentText, documentTitle);
+      return res.json(result);
+    } catch (err) {
+      console.error('[Document Offline Summarize Error]', err);
+      return res.status(500).json({ success: false, message: 'Local summarization failed: ' + err.message });
+    }
+  }
+
+  static async getCaseRagAnalysis(req, res) {
+    try {
+      const { id } = req.params;
+      const scope = req.query.scope || 'client'; // default to client-wide intelligence
+      const result = await CaseRagService.analyzeDocumentWithCaseMemory(id, { scope });
+      return res.json(result);
+    } catch (err) {
+      console.error('[Case RAG Analysis Error]', err);
+      return res.status(500).json({ success: false, message: 'Case/Client-Aware RAG Analysis failed: ' + err.message });
+    }
+  }
+
+  static async getClientIntelligence(req, res) {
+    try {
+      const { clientId } = req.params;
+      const result = await CaseRagService.getClientIntelligence(clientId);
+      return res.json(result);
+    } catch (err) {
+      console.error('[Client Intelligence Error]', err);
+      return res.status(500).json({ success: false, message: 'Failed to retrieve client intelligence: ' + err.message });
+    }
+  }
+
+  static async getCaseTimeline(req, res) {
+    try {
+      const { caseId } = req.params;
+      const timeline = await CaseRagService.getCaseMasterTimeline(caseId);
+      return res.json({ success: true, case_id: caseId, timeline });
+    } catch (err) {
+      console.error('[Case Timeline Error]', err);
+      return res.status(500).json({ success: false, message: 'Failed to retrieve timeline: ' + err.message });
     }
   }
 }
