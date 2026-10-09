@@ -283,6 +283,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
       <app-modal
         [isOpen]="isPayModalOpen"
         title="Secure Razorpay / UPI Client Fee Payment"
+        (close)="isPayModalOpen = false"
         (closed)="isPayModalOpen = false">
         <div class="p-3" *ngIf="selectedInvoice">
           <div class="text-center mb-3">
@@ -321,6 +322,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
       <app-modal
         [isOpen]="isUploadModalOpen"
         title="Confidential Legal Document Upload"
+        (close)="isUploadModalOpen = false"
         (closed)="isUploadModalOpen = false">
         <div class="p-3">
           <div class="alert alert-info py-2 small mb-3">

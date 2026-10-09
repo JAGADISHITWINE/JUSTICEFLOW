@@ -96,10 +96,10 @@ export interface TableColumn {
   styles: [`
     .table-container-card {
       position: relative;
-      background: #FFFFFF;
+      background: var(--jf-bg-card, #FFFFFF);
       border-radius: 12px;
-      border: 1px solid rgba(189, 195, 199, 0.45);
-      box-shadow: 0 2px 4px rgba(44, 62, 80, 0.04);
+      border: 1px solid var(--jf-border, rgba(189, 195, 199, 0.45));
+      box-shadow: var(--jf-shadow-sm, 0 2px 4px rgba(44, 62, 80, 0.04));
       overflow: hidden;
 
       .table-loading-overlay {
@@ -108,7 +108,8 @@ export interface TableColumn {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.85);
+        background: var(--jf-bg-card, rgba(255, 255, 255, 0.85));
+        opacity: 0.9;
         z-index: 20;
         display: flex;
         align-items: center;
@@ -125,7 +126,7 @@ export interface TableColumn {
         user-select: none;
 
         &:hover {
-          background-color: #EDF2F7 !important;
+          background-color: var(--jf-bg-hover, #EDF2F7) !important;
         }
 
         .th-content {
@@ -136,27 +137,27 @@ export interface TableColumn {
 
         .sort-icon {
           font-size: 0.85rem;
-          color: #7F8C8D;
+          color: var(--jf-text-muted, #7F8C8D);
         }
       }
 
       .table-pagination-footer {
         padding: 0.9rem 1.5rem;
-        border-top: 1px solid #ECF0F1;
+        border-top: 1px solid var(--jf-border, #ECF0F1);
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 1rem;
-        background-color: #FFFFFF;
+        background-color: var(--jf-bg-card, #FFFFFF);
 
         .pagination-info {
           font-size: 0.85rem;
-          color: #7F8C8D;
+          color: var(--jf-text-muted, #7F8C8D);
 
           span {
             font-weight: 600;
-            color: #2C3E50;
+            color: var(--jf-text-primary, #2C3E50);
           }
         }
 
@@ -167,7 +168,7 @@ export interface TableColumn {
 
           .page-current-indicator {
             font-size: 0.85rem;
-            color: #2C3E50;
+            color: var(--jf-text-primary, #2C3E50);
             font-weight: 500;
           }
         }

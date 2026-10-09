@@ -31,10 +31,10 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [`
     .jf-card-box {
-      background: #FFFFFF;
+      background: var(--jf-bg-card, #FFFFFF);
       border-radius: 14px;
-      border: 1px solid #E2E8F0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--jf-border, #E2E8F0);
+      box-shadow: var(--jf-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -42,24 +42,24 @@ import { CommonModule } from '@angular/common';
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
-        box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06), 0 4px 8px -4px rgba(0, 0, 0, 0.03);
+        box-shadow: var(--jf-shadow-md, 0 8px 20px -4px rgba(0, 0, 0, 0.06));
       }
 
       .card-header-bar {
         padding: 1.15rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
+        border-bottom: 1px solid var(--jf-border, #E2E8F0);
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        background: #FFFFFF;
+        background: var(--jf-bg-card-header, #FFFFFF);
 
         .header-titles {
           .card-main-title {
             margin: 0;
             font-size: 1.05rem;
             font-weight: 600;
-            color: #2C3E50;
+            color: var(--jf-text-primary, #2C3E50);
             display: flex;
             align-items: center;
           }
@@ -68,7 +68,7 @@ import { CommonModule } from '@angular/common';
             display: block;
             margin-top: 0.2rem;
             font-size: 0.8rem;
-            color: #7F8C8D;
+            color: var(--jf-text-muted, #7F8C8D);
           }
         }
 
@@ -90,8 +90,8 @@ import { CommonModule } from '@angular/common';
 
       .card-footer-bar {
         padding: 1rem 1.5rem;
-        background-color: #F8FAFC;
-        border-top: 1px solid #E2E8F0;
+        background-color: var(--jf-bg-card-footer, #F8FAFC);
+        border-top: 1px solid var(--jf-border, #E2E8F0);
       }
     }
   `]

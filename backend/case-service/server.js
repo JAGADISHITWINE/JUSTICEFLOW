@@ -33,6 +33,8 @@ app.get('/api/cases/retainers/:id/pdf', RetainerController.downloadContractPdf);
 
 // Case Routes
 app.get('/api/cases/stats/dashboard', authenticateToken, CaseController.getDashboardStats);
+app.post('/api/cases/sync-all-ecourts', authenticateToken, CaseController.syncAllECourts);
+app.post('/api/cases/:id/sync-ecourts', authenticateToken, CaseController.syncECourts);
 app.get('/api/cases', authenticateToken, CaseController.getAll);
 app.get('/api/cases/:id', authenticateToken, CaseController.getById);
 app.post('/api/cases', authenticateToken, CaseController.create);

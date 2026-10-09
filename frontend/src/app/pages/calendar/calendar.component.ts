@@ -289,6 +289,7 @@ interface CalendarDay {
       <app-modal
         [isOpen]="isRuleModalOpen"
         title="Rule-Based Statutory Deadline Trigger Calculator"
+        (close)="isRuleModalOpen = false"
         (closed)="isRuleModalOpen = false">
         <div class="p-3">
           <p class="text-muted small">
@@ -380,6 +381,7 @@ interface CalendarDay {
       <app-modal
         [isOpen]="isSyncModalOpen"
         title="2-Way Court Calendar Synchronization"
+        (close)="isSyncModalOpen = false"
         (closed)="isSyncModalOpen = false">
         <div class="p-3">
           <div class="text-center mb-4">
@@ -438,6 +440,7 @@ interface CalendarDay {
       <app-modal
         [isOpen]="isNewEventModalOpen"
         title="Schedule Court Appearance or Event"
+        (close)="isNewEventModalOpen = false"
         (closed)="isNewEventModalOpen = false">
         <div class="p-3">
           <div class="row g-3">

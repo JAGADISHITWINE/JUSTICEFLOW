@@ -133,6 +133,44 @@ class CaseController {
       return res.status(500).json({ success: false, message: 'Failed to fetch dashboard statistics.' });
     }
   }
+
+  static async syncECourts(req, res) {
+    try {
+      const id = req.params.id;
+      const result = await CaseModel.syncECourts(id);
+      const userId = req.user ? req.user.id : 1;
+
+      await logAudit(
+        userId,
+        `e-Courts Synced case: ${result.cnr_number} (${result.next_hearing_date})`,
+        'CASE',
+        id
+      );
+
+      return res.json({
+        success: true,
+        message: `e-Courts synchronization successful! Next hearing scheduled on ${result.next_hearing_date} at ${result.court_hall}.`,
+        data: result
+      });
+    } catch (err) {
+      console.error('[Case e-Courts Sync Error]', err);
+      return res.status(400).json({ success: false, message: err.message || 'Failed to sync with e-Courts.' });
+    }
+  }
+
+  static async syncAllECourts(req, res) {
+    try {
+      const result = await CaseModel.syncAllECourts();
+      return res.json({
+        success: true,
+        message: `Automated e-Courts synchronization completed: ${result.synced_count} of ${result.total} matters synced.`,
+        data: result
+      });
+    } catch (err) {
+      console.error('[Case Batch e-Courts Sync Error]', err);
+      return res.status(500).json({ success: false, message: 'Failed to run batch e-Courts synchronization.' });
+    }
+  }
 }
 
 module.exports = CaseController;

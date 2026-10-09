@@ -8,13 +8,19 @@ import { AppButtonComponent } from '../../shared/components/button/button.compon
 import { AppFormInputComponent } from '../../shared/components/form-input/form-input.component';
 import { AppAlertComponent } from '../../shared/components/alert/alert.component';
 import { AppModalComponent } from '../../shared/components/modal/modal.component';
+import { AppThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppButtonComponent, AppFormInputComponent, AppAlertComponent, AppModalComponent],
+  imports: [CommonModule, FormsModule, AppButtonComponent, AppFormInputComponent, AppAlertComponent, AppModalComponent, AppThemeToggleComponent],
   template: `
     <div class="login-page-container">
+      <!-- Floating Day / Night Toggle on Login Screen -->
+      <div class="login-theme-corner">
+        <app-theme-toggle variant="segmented" [compact]="true"></app-theme-toggle>
+      </div>
+
       <div class="login-card-box">
         <!-- Logo & Branding -->
         <div class="text-center mb-4">
@@ -335,16 +341,24 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
                   linear-gradient(135deg, #0B132B 0%, #1C2541 50%, #0F172A 100%);
       padding: 1.5rem;
       position: relative;
+
+      .login-theme-corner {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 20;
+      }
     }
 
     .login-card-box {
       width: 100%;
       max-width: 450px;
-      background: #FFFFFF;
+      background: var(--jf-bg-card, #FFFFFF);
       border-radius: 20px;
       padding: 2.25rem 2rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--jf-border, rgba(255, 255, 255, 0.12));
+      transition: background-color 0.25s ease, border-color 0.25s ease;
 
       .brand-logo-container {
         display: flex;
@@ -366,22 +380,22 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
         font-family: 'Outfit', sans-serif;
         font-weight: 700;
         font-size: 1.65rem;
-        color: #0F172A;
+        color: var(--jf-text-primary, #0F172A);
         margin-bottom: 0.2rem;
       }
 
       .brand-subtitle {
         font-size: 0.85rem;
-        color: #64748B;
+        color: var(--jf-text-muted, #64748B);
         margin-bottom: 0;
       }
 
       .mode-tabs {
         display: flex;
-        background: #F1F5F9;
+        background: var(--jf-bg-subtle, #F1F5F9);
         padding: 4px;
         border-radius: 12px;
-        border: 1px solid #E2E8F0;
+        border: 1px solid var(--jf-border, #E2E8F0);
         gap: 4px;
 
         .tab-btn {
@@ -391,7 +405,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
           background: transparent;
           font-size: 0.88rem;
           font-weight: 600;
-          color: #64748B;
+          color: var(--jf-text-muted, #64748B);
           border-radius: 8px;
           cursor: pointer;
           display: inline-flex;
@@ -400,22 +414,22 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
           &.active {
-            background: #FFFFFF;
-            color: #0F172A;
+            background: var(--jf-bg-card, #FFFFFF);
+            color: var(--jf-text-primary, #0F172A);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
           }
 
           &:hover:not(.active) {
-            color: #1E293B;
+            color: var(--jf-text-primary, #1E293B);
           }
         }
       }
 
       .demo-box {
-        background-color: #F8FAFC;
+        background-color: var(--jf-bg-subtle, #F8FAFC);
         border-radius: 12px;
         padding: 1rem;
-        border: 1px dashed #CBD5E1;
+        border: 1px dashed var(--jf-border-input, #CBD5E1);
 
         .demo-title {
           display: block;

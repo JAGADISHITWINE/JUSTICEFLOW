@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,7 +13,12 @@ import { CommonModule } from '@angular/common';
             <i *ngIf="icon" class="bi me-2" [ngClass]="icon"></i>
             {{ title }}
           </h5>
-          <button type="button" class="btn-close-modal" (click)="closeModal()">
+          <button
+            type="button"
+            class="btn-close-modal"
+            (click)="closeModal()"
+            title="Close dialog (Esc)"
+            aria-label="Close dialog">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
@@ -35,8 +40,8 @@ import { CommonModule } from '@angular/common';
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(44, 62, 80, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(11, 19, 43, 0.7);
+      backdrop-filter: blur(5px);
       z-index: 1050;
       display: flex;
       align-items: center;
@@ -46,9 +51,10 @@ import { CommonModule } from '@angular/common';
     }
 
     .jf-modal-dialog {
-      background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      background: var(--jf-bg-modal, #FFFFFF);
+      border-radius: 14px;
+      border: 1px solid var(--jf-border, #E2E8F0);
+      box-shadow: var(--jf-shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.25));
       width: 100%;
       max-width: 600px;
       max-height: 90vh;
@@ -63,36 +69,50 @@ import { CommonModule } from '@angular/common';
       &.modal-xl { max-width: 1040px; }
 
       .jf-modal-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #ECF0F1;
+        padding: 1.15rem 1.5rem;
+        border-bottom: 1px solid var(--jf-border, #ECF0F1);
         display: flex;
         align-items: center;
         justify-content: space-between;
+        background-color: var(--jf-bg-card-header, #FFFFFF);
 
         .modal-title {
           margin: 0;
           font-size: 1.15rem;
-          font-weight: 600;
-          color: #2C3E50;
+          font-weight: 700;
+          color: var(--jf-text-primary, #2C3E50);
           display: flex;
           align-items: center;
         }
 
         .btn-close-modal {
-          background: none;
-          border: none;
-          font-size: 1rem;
-          color: #7F8C8D;
+          background: transparent;
+          border: 1px solid transparent;
+          width: 32px;
+          height: 32px;
+          font-size: 0.95rem;
+          color: var(--jf-text-muted, #7F8C8D);
           cursor: pointer;
-          padding: 0.25rem;
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          border-radius: 6px;
-          transition: all 0.15s ease;
+          justify-content: center;
+          border-radius: 8px;
+          transition: all 0.2s ease;
 
           &:hover {
-            color: #2C3E50;
-            background-color: #ECF0F1;
+            color: #DC2626 !important;
+            background-color: rgba(220, 38, 38, 0.12) !important;
+            border-color: rgba(220, 38, 38, 0.2) !important;
+            transform: scale(1.05);
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
+
+          &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
           }
         }
       }
@@ -101,12 +121,13 @@ import { CommonModule } from '@angular/common';
         padding: 1.5rem;
         overflow-y: auto;
         flex: 1;
+        color: var(--jf-text-body, #334155);
       }
 
       .jf-modal-footer {
         padding: 1rem 1.5rem;
-        background-color: #F8FAFC;
-        border-top: 1px solid #ECF0F1;
+        background-color: var(--jf-bg-card-footer, #F8FAFC);
+        border-top: 1px solid var(--jf-border, #ECF0F1);
         display: flex;
         align-items: center;
         justify-content: flex-end;
@@ -120,7 +141,7 @@ import { CommonModule } from '@angular/common';
     }
 
     @keyframes slideDown {
-      from { transform: translateY(-20px) scale(0.98); opacity: 0; }
+      from { transform: translateY(-16px) scale(0.98); opacity: 0; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
   `]
@@ -132,10 +153,21 @@ export class AppModalComponent {
   @Input() size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input() hasFooter: boolean = true;
   @Input() closeOnBackdrop: boolean = true;
+  
+  // Support both (close) and (closed) outputs
   @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: KeyboardEvent) {
+    if (this.isOpen) {
+      this.closeModal();
+    }
+  }
 
   closeModal() {
     this.close.emit();
+    this.closed.emit();
   }
 
   onBackdropClick(event: MouseEvent) {

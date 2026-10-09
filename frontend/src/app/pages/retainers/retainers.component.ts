@@ -181,6 +181,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
       <app-modal
         [isOpen]="isNewModalOpen"
         title="Draft Legal Engagement & Retainer Agreement"
+        (close)="isNewModalOpen = false"
         (closed)="isNewModalOpen = false">
         <div class="p-3">
           <div class="row g-3">
@@ -237,6 +238,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
       <app-modal
         [isOpen]="isRevisionModalOpen"
         title="Create Contract Revision (Version Control)"
+        (close)="isRevisionModalOpen = false"
         (closed)="isRevisionModalOpen = false">
         <div class="p-3" *ngIf="selectedRetainer">
           <div class="alert alert-info py-2 small mb-3">
@@ -248,14 +250,14 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label fw-semibold small">Redline Summary / Revision Notes *</label>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="revisionData.redline_notes" placeholder="e.g. Updated fee schedule to $500/hr; added ADR arbitration clause">
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="revisionData.redline_notes" placeholder="e.g. Updated fee schedule to ₹5,000/hr; added ADR arbitration clause">
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label fw-semibold small">Retainer Deposit ($)</label>
+              <label class="form-label fw-semibold small">Retainer Deposit (₹)</label>
               <input type="number" class="form-control form-control-sm" [(ngModel)]="revisionData.retainer_amount">
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label fw-semibold small">Hourly Rate ($/hr)</label>
+              <label class="form-label fw-semibold small">Hourly Rate (₹/hr)</label>
               <input type="number" class="form-control form-control-sm" [(ngModel)]="revisionData.hourly_rate">
             </div>
             <div class="col-12">
@@ -277,6 +279,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
       <app-modal
         [isOpen]="isSignModalOpen"
         title="Digital E-Signature Pad & Biometric Timestamp"
+        (close)="closeSignModal()"
         (closed)="closeSignModal()">
         <div class="p-3" *ngIf="selectedRetainer">
           <p class="text-muted small mb-2">

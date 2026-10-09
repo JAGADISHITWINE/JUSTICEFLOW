@@ -55,7 +55,7 @@ export interface SelectOption {
         margin-bottom: 0.4rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #2C3E50;
+        color: var(--jf-text-primary, #2C3E50);
       }
 
       .select-wrapper {
@@ -67,7 +67,7 @@ export interface SelectOption {
           position: absolute;
           right: 1rem;
           pointer-events: none;
-          color: #7F8C8D;
+          color: var(--jf-text-muted, #7F8C8D);
           font-size: 0.8rem;
         }
       }
@@ -76,18 +76,18 @@ export interface SelectOption {
         width: 100%;
         padding: 0.6rem 2.25rem 0.6rem 0.85rem;
         font-size: 0.9rem;
-        color: #2C3E50;
-        background-color: #FFFFFF;
-        border: 1px solid #BDC3C7;
+        color: var(--jf-text-primary, #2C3E50);
+        background-color: var(--jf-bg-input, #FFFFFF);
+        border: 1px solid var(--jf-border-input, #BDC3C7);
         border-radius: 8px;
         appearance: none;
         cursor: pointer;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
 
         &:focus {
           outline: none;
-          border-color: #3498DB;
-          box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+          border-color: var(--jf-accent-primary, #3498DB);
+          box-shadow: 0 0 0 3px var(--jf-accent-glow, rgba(52, 152, 219, 0.2));
         }
 
         &.has-error {
@@ -98,7 +98,7 @@ export interface SelectOption {
         }
 
         &:disabled {
-          background-color: #F8FAFC;
+          background-color: var(--jf-bg-subtle, #F8FAFC);
           cursor: not-allowed;
         }
       }

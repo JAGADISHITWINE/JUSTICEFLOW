@@ -39,19 +39,40 @@ import { AppLoaderComponent } from '../../shared/components/loader/loader.compon
             <a routerLink="/cases" class="btn btn-sm btn-link text-decoration-none p-0 text-muted mb-2 d-inline-block">
               <i class="bi bi-arrow-left me-1"></i> Back to All Cases
             </a>
-            <h2 class="case-title mb-1">{{ caseData.case_name }}</h2>
             <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h2 class="case-title mb-0 fw-bold">{{ caseData.case_name }}</h2>
+              <span [ngClass]="getForumBadgeClass(caseData.court_forum)" class="badge rounded-pill px-3 py-1">
+                <i [ngClass]="getForumIcon(caseData.court_forum)" class="me-1"></i>
+                {{ caseData.court_forum || 'Commercial Court' }}
+              </span>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
               <span class="badge bg-secondary-subtle text-primary border border-primary-subtle fw-semibold">
-                {{ caseData.case_number }}
+                <i class="bi bi-hash"></i> {{ caseData.case_number }}
+              </span>
+              <span *ngIf="caseData.cnr_number" class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">
+                <i class="bi bi-upc-scan me-1"></i> CNR: {{ caseData.cnr_number }}
               </span>
               <span class="text-muted">&bull;</span>
               <span class="text-dark fw-medium">{{ caseData.client_name }}</span>
               <span class="text-muted">&bull;</span>
               <app-badge [status]="caseData.status"></app-badge>
             </div>
+            <div *ngIf="caseData.fir_number" class="small text-danger mt-1">
+              <i class="bi bi-shield-exclamation me-1"></i>FIR: <strong>{{ caseData.fir_number }}</strong> (PS: {{ caseData.police_station || 'Jurisdiction Police Station' }})
+            </div>
           </div>
 
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <button 
+              *ngIf="caseData.cnr_number" 
+              class="btn btn-outline-success d-flex align-items-center gap-1"
+              [disabled]="syncing"
+              (click)="syncECourtsNow()">
+              <span *ngIf="syncing" class="spinner-border spinner-border-sm"></span>
+              <i *ngIf="!syncing" class="bi bi-arrow-repeat"></i>
+              <span>{{ syncing ? 'Syncing...' : 'e-Courts Live Sync' }}</span>
+            </button>
             <button class="btn btn-outline-secondary" (click)="openUploadModal()">
               <i class="bi bi-upload me-1"></i> Upload File
             </button>
@@ -100,13 +121,18 @@ import { AppLoaderComponent } from '../../shared/components/loader/loader.compon
           <!-- Court & Filing -->
           <div class="col-12 col-md-4">
             <div class="stat-box p-3 bg-white rounded-3 border">
-              <span class="text-muted small fw-semibold d-block mb-2">COURT & DOCKET INFO</span>
-              <h6 class="mb-1 text-dark fw-semibold">{{ caseData.court_name || 'Tribunal / Arbitration' }}</h6>
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="text-muted small fw-semibold">COURT & BENCH INFO</span>
+                <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">
+                  {{ caseData.court_forum || 'Commercial' }}
+                </span>
+              </div>
+              <h6 class="mb-1 text-dark fw-semibold">{{ caseData.court_name || 'Tribunal / Court Hall' }}</h6>
               <div class="small text-muted mb-1">
-                Judge: <span class="fw-medium text-dark">{{ caseData.judge_name || 'Unassigned' }}</span>
+                Judge: <span class="fw-medium text-dark">{{ caseData.judge_name || 'Hon. Presiding Bench' }}</span>
               </div>
               <div class="small text-muted">
-                Filing Date: <span class="fw-medium text-dark">{{ caseData.filing_date || 'N/A' }}</span>
+                Next Date / Disposal: <span class="fw-bold text-primary">{{ caseData.expected_close_date || caseData.filing_date || 'In Session' }}</span>
               </div>
             </div>
           </div>
@@ -513,6 +539,49 @@ export class CaseDetailComponent implements OnInit {
     });
   }
 
+  syncing: boolean = false;
+  syncECourtsNow() {
+    if (!this.caseId) return;
+    this.syncing = true;
+    this.caseService.syncECourts(this.caseId).subscribe({
+      next: res => {
+        this.syncing = false;
+        this.notificationService.success(res.message || 'e-Courts sync completed!', 'e-Courts Live Sync');
+        this.loadCaseDetail();
+      },
+      error: err => {
+        this.syncing = false;
+        this.notificationService.error(err.error?.message || err.message || 'Failed to sync with e-Courts.');
+      }
+    });
+  }
+
+  getForumIcon(forum?: string): string {
+    switch (forum) {
+      case 'High Court': return 'bi-bank';
+      case 'Criminal Court': return 'bi-shield-shaded';
+      case 'Family Court': return 'bi-people-fill';
+      case 'Commercial Court': return 'bi-briefcase-fill';
+      case 'NCLT Tribunal': return 'bi-building';
+      case 'Consumer Forum': return 'bi-scale';
+      case 'Supreme Court': return 'bi-gem';
+      default: return 'bi-building-gear';
+    }
+  }
+
+  getForumBadgeClass(forum?: string): string {
+    switch (forum) {
+      case 'High Court': return 'bg-primary-subtle text-primary border border-primary-subtle';
+      case 'Criminal Court': return 'bg-danger-subtle text-danger border border-danger-subtle';
+      case 'Family Court': return 'bg-purple-subtle text-purple border border-purple-subtle';
+      case 'Commercial Court': return 'bg-success-subtle text-success border border-success-subtle';
+      case 'NCLT Tribunal': return 'bg-warning-subtle text-warning border border-warning-subtle';
+      case 'Consumer Forum': return 'bg-info-subtle text-info border border-info-subtle';
+      case 'Supreme Court': return 'bg-warning-subtle text-dark border border-warning';
+      default: return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+    }
+  }
+
   deleteTime(id: number) {
     if (!confirm('Delete this logged time record?')) return;
     this.timeService.deleteTimeEntry(id).subscribe({
@@ -525,7 +594,7 @@ export class CaseDetailComponent implements OnInit {
 
   formatCurrency(val: any): string {
     const num = parseFloat(val) || 0;
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   calculatePercentage(spent: any, budget: any): number {

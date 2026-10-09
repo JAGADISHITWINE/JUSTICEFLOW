@@ -40,3 +40,68 @@ $radius-pill: 9999px;
 $sidebar-width: 260px;
 $sidebar-collapsed-width: 72px;
 $navbar-height: 64px;
+
+// CSS Variables for Dynamic Day / Night Theme
+:root {
+  --jf-bg-app: #F8FAFC;
+  --jf-bg-card: #FFFFFF;
+  --jf-bg-card-header: #FFFFFF;
+  --jf-bg-card-footer: #F8FAFC;
+  --jf-bg-subtle: #F1F5F9;
+  --jf-bg-hover: rgba(241, 245, 249, 0.75);
+  --jf-bg-input: #FFFFFF;
+  --jf-bg-modal: #FFFFFF;
+  --jf-bg-dropdown: #FFFFFF;
+  --jf-navbar-bg: #FFFFFF;
+
+  --jf-text-primary: #0F172A;
+  --jf-text-body: #334155;
+  --jf-text-muted: #64748B;
+  --jf-text-subtle: #94A3B8;
+
+  --jf-border: #E2E8F0;
+  --jf-border-subtle: #F1F5F9;
+  --jf-border-input: #CBD5E1;
+
+  --jf-accent-primary: #2563EB;
+  --jf-accent-primary-hover: #1D4ED8;
+  --jf-accent-glow: rgba(37, 99, 235, 0.2);
+
+  --jf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --jf-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --jf-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --jf-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"],
+.dark-theme {
+  --jf-bg-app: #0B1120;
+  --jf-bg-card: #131E33;
+  --jf-bg-card-header: #131E33;
+  --jf-bg-card-footer: #0D1627;
+  --jf-bg-subtle: #1A263D;
+  --jf-bg-hover: rgba(30, 48, 80, 0.45);
+  --jf-bg-input: #0B1324;
+  --jf-bg-modal: #131E33;
+  --jf-bg-dropdown: #15223A;
+  --jf-navbar-bg: #0D1627;
+
+  --jf-text-primary: #F8FAFC;
+  --jf-text-body: #CBD5E1;
+  --jf-text-muted: #94A3B8;
+  --jf-text-subtle: #64748B;
+
+  --jf-border: #22324F;
+  --jf-border-subtle: #19263D;
+  --jf-border-input: #304264;
+
+  --jf-accent-primary: #3B82F6;
+  --jf-accent-primary-hover: #60A5FA;
+  --jf-accent-glow: rgba(59, 130, 246, 0.35);
+
+  --jf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --jf-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --jf-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.65);
+  --jf-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
+}
+

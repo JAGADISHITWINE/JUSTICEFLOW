@@ -29,10 +29,24 @@ import { CaseFormComponent } from './case-form.component';
       <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
-          <h2 class="page-title mb-1">Legal Matters & Cases</h2>
-          <p class="text-muted small mb-0">Track active lawsuits, corporate advisory files, and court hearings</p>
+          <h2 class="page-title mb-1 fw-bold">
+            <i class="bi bi-briefcase-fill text-primary me-2"></i>Legal Matters & Court Dockets
+          </h2>
+          <p class="text-muted small mb-0">
+            Litigation docketing, e-Courts live synchronization, case diaries, and forum tracking
+          </p>
         </div>
         <div class="d-flex gap-2">
+          <button 
+            class="btn btn-outline-primary d-flex align-items-center gap-2"
+            [disabled]="syncingAll"
+            (click)="syncAllCases()"
+            title="Automatically query e-Courts portal for all active matters">
+            <span *ngIf="syncingAll" class="spinner-border spinner-border-sm"></span>
+            <i *ngIf="!syncingAll" class="bi bi-arrow-repeat"></i>
+            <span>{{ syncingAll ? 'Syncing e-Courts...' : 'Live e-Courts Sync All' }}</span>
+          </button>
+
           <app-button
             label="Open New Matter"
             icon="bi-folder-plus"
@@ -43,7 +57,7 @@ import { CaseFormComponent } from './case-form.component';
       </div>
 
       <!-- Filters Card -->
-      <div class="filters-card p-3 mb-4 bg-white rounded-3 border">
+      <div class="filters-card p-3 mb-4 bg-white rounded-3 border shadow-sm">
         <div class="row g-3 align-items-center">
           <div class="col-12 col-md-4">
             <div class="input-group">
@@ -53,7 +67,7 @@ import { CaseFormComponent } from './case-form.component';
               <input
                 type="text"
                 class="form-control border-start-0"
-                placeholder="Search matter name, docket #, court, client..."
+                placeholder="Search matter, CNR #, docket, court, client..."
                 [(ngModel)]="searchQuery"
                 (keyup.enter)="loadCases()"
               />
@@ -61,28 +75,30 @@ import { CaseFormComponent } from './case-form.component';
           </div>
 
           <div class="col-6 col-md-3">
-            <select class="form-select" [(ngModel)]="statusFilter" (change)="loadCases()">
-              <option value="All">All Statuses</option>
-              <option value="Open">Open</option>
-              <option value="Pending">Pending</option>
-              <option value="On Hold">On Hold</option>
-              <option value="Closed">Closed</option>
+            <select class="form-select" [(ngModel)]="courtForumFilter" (change)="loadCases()">
+              <option value="All">All Judicial Forums</option>
+              <option value="High Court">🏛️ High Court / Constitutional</option>
+              <option value="Criminal Court">🔴 Criminal Court (Sessions / CJM)</option>
+              <option value="Family Court">💜 Family Court</option>
+              <option value="Commercial Court">🟢 Civil & Commercial Court</option>
+              <option value="NCLT Tribunal">🟠 NCLT / IBC Tribunal</option>
+              <option value="Consumer Forum">⚖️ Consumer Disputes</option>
             </select>
           </div>
 
           <div class="col-6 col-md-3">
-            <select class="form-select" [(ngModel)]="caseTypeFilter" (change)="loadCases()">
-              <option value="All">All Practice Areas</option>
-              <option value="Commercial Litigation">Commercial Litigation</option>
-              <option value="Corporate / Securities">Corporate / Securities</option>
-              <option value="Intellectual Property">Intellectual Property</option>
-              <option value="Estate Planning / Probate">Estate Planning / Probate</option>
+            <select class="form-select" [(ngModel)]="statusFilter" (change)="loadCases()">
+              <option value="All">All Statuses</option>
+              <option value="Open">Open / Active</option>
+              <option value="Pending">Pending Arguments</option>
+              <option value="On Hold">On Hold / Stayed</option>
+              <option value="Closed">Closed / Disposed</option>
             </select>
           </div>
 
           <div class="col-12 col-md-2 text-end">
             <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
-              <i class="bi bi-arrow-counterclockwise"></i> Reset
+              <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
             </button>
           </div>
         </div>
@@ -94,57 +110,100 @@ import { CaseFormComponent } from './case-form.component';
           <table class="table table-custom align-middle mb-0">
             <thead>
               <tr>
-                <th>Matter & Docket</th>
-                <th>Client</th>
-                <th>Practice Area</th>
+                <th>Matter & Court Forum</th>
+                <th>Official CNR / Docket</th>
+                <th>Retained Client</th>
                 <th>Status</th>
-                <th>Budget / Spent</th>
-                <th>Documents</th>
+                <th>Fee Budget / Spent</th>
+                <th>e-Courts Sync</th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let c of cases">
-                <td>
-                  <a [routerLink]="['/cases', c.id]" class="fw-semibold text-dark text-hover-blue">
-                    {{ c.case_name }}
-                  </a>
-                  <div class="text-muted small">
-                    <span class="text-primary fw-medium">{{ c.case_number }}</span>
-                    <span *ngIf="c.court_name"> &bull; {{ c.court_name }}</span>
+                <!-- Case Name & Forum -->
+                <td style="max-width: 280px;">
+                  <div class="d-flex align-items-start gap-2">
+                    <span [ngClass]="getForumBadgeClass(c.court_forum)" class="badge rounded-pill p-2 mt-1">
+                      <i [ngClass]="getForumIcon(c.court_forum)"></i>
+                    </span>
+                    <div>
+                      <a [routerLink]="['/cases', c.id]" class="fw-bold text-dark text-hover-blue text-decoration-none">
+                        {{ c.case_name }}
+                      </a>
+                      <div class="small text-muted mt-1">
+                        <span class="badge bg-light text-dark border me-1">{{ c.court_forum || 'Commercial Court' }}</span>
+                        <span *ngIf="c.court_name" class="text-secondary small">&bull; {{ c.court_name }}</span>
+                      </div>
+                      <div *ngIf="c.fir_number" class="small text-danger mt-1">
+                        <i class="bi bi-shield-exclamation me-1"></i>FIR: {{ c.fir_number }} ({{ c.police_station || 'Jurisdiction PS' }})
+                      </div>
+                    </div>
                   </div>
                 </td>
+
+                <!-- CNR & Docket -->
                 <td>
-                  <span class="text-dark fw-medium">{{ c.client_name }}</span>
+                  <div *ngIf="c.cnr_number" class="d-flex align-items-center gap-1">
+                    <code class="text-primary fw-bold font-monospace bg-light px-2 py-1 rounded border small">
+                      {{ c.cnr_number }}
+                    </code>
+                    <button class="btn btn-sm btn-link text-muted p-0" title="Copy CNR Number" (click)="copyToClipboard(c.cnr_number)">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                  <div class="small text-muted mt-1">
+                    <span>Docket: <strong>{{ c.case_number }}</strong></span>
+                  </div>
                 </td>
+
+                <!-- Client -->
                 <td>
-                  <span class="badge bg-light text-dark border">{{ c.case_type }}</span>
+                  <span class="text-dark fw-semibold">{{ c.client_name }}</span>
+                  <div class="small text-muted">{{ c.client_email || 'Verified Client' }}</div>
                 </td>
+
+                <!-- Status -->
                 <td>
                   <app-badge [status]="c.status"></app-badge>
                 </td>
-                <td style="min-width: 130px;">
-                  <div class="d-flex justify-content-between small text-muted mb-1">
+
+                <!-- Budget -->
+                <td style="min-width: 140px;">
+                  <div class="d-flex justify-content-between small text-muted mb-1 font-monospace">
                     <span>₹{{ formatCurrency(c.spent) }}</span>
                     <span>₹{{ formatCurrency(c.budget) }}</span>
                   </div>
-                  <div class="progress" style="height: 5px;">
+                  <div class="progress" style="height: 6px;">
                     <div
-                      class="progress-bar"
+                      class="progress-bar rounded"
                       [ngClass]="getProgressBarClass(c.spent, c.budget)"
                       [style.width.%]="calculatePercentage(c.spent, c.budget)">
                     </div>
                   </div>
                 </td>
+
+                <!-- e-Courts Sync Action -->
                 <td>
-                  <span class="badge bg-light text-secondary border">
-                    <i class="bi bi-file-earmark-text me-1"></i>
-                    {{ c.doc_count || 0 }} files
+                  <button 
+                    *ngIf="c.cnr_number"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+                    [disabled]="syncingCaseId === c.id"
+                    (click)="syncCaseECourts(c)"
+                    title="Fetch latest cause list & hearing date from e-Courts portal">
+                    <span *ngIf="syncingCaseId === c.id" class="spinner-border spinner-border-sm"></span>
+                    <i *ngIf="syncingCaseId !== c.id" class="bi bi-cloud-arrow-down-fill"></i>
+                    <span style="font-size: 0.75rem;">{{ syncingCaseId === c.id ? 'Syncing...' : 'Sync Now' }}</span>
+                  </button>
+                  <span *ngIf="!c.cnr_number" class="badge bg-light text-muted border small" style="font-size: 0.7rem;">
+                    No CNR Linked
                   </span>
                 </td>
+
+                <!-- Actions -->
                 <td class="text-end">
                   <div class="btn-group">
-                    <a [routerLink]="['/cases', c.id]" class="btn btn-sm btn-outline-primary" title="View Details">
+                    <a [routerLink]="['/cases', c.id]" class="btn btn-sm btn-outline-primary" title="View Case Diary">
                       <i class="bi bi-eye"></i>
                     </a>
                     <button class="btn btn-sm btn-outline-secondary" (click)="openEditModal(c)" title="Edit Matter">
@@ -169,7 +228,7 @@ import { CaseFormComponent } from './case-form.component';
 
         <!-- Pagination -->
         <div *ngIf="pagination.total > 0" class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-          <small class="text-muted">Total: <strong>{{ pagination.total }}</strong> matters</small>
+          <small class="text-muted">Showing total <strong>{{ pagination.total }}</strong> docketed matters</small>
           <div class="btn-group">
             <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
               Previous
@@ -200,7 +259,7 @@ import { CaseFormComponent } from './case-form.component';
         (close)="isDeleteModalOpen = false">
         <p class="text-dark">
           Are you sure you want to delete <strong>{{ caseToDelete?.case_name }}</strong>?
-          All associated time entries and document attachments will be removed.
+          All associated time entries, hearing dates, and document attachments will be removed.
         </p>
         <div modal-footer>
           <button class="btn btn-outline-secondary" (click)="isDeleteModalOpen = false">Cancel</button>
@@ -216,10 +275,10 @@ import { CaseFormComponent } from './case-form.component';
     .cases-page {
       .page-title {
         font-size: 1.65rem;
-        color: #2C3E50;
+        color: #1e293b;
       }
       .text-hover-blue:hover {
-        color: #3498DB !important;
+        color: #2563eb !important;
       }
     }
   `]
@@ -229,10 +288,13 @@ export class CasesComponent implements OnInit {
   loading: boolean = false;
   saving: boolean = false;
   deleting: boolean = false;
+  syncingCaseId: number | null = null;
+  syncingAll: boolean = false;
 
   searchQuery: string = '';
   statusFilter: string = 'All';
   caseTypeFilter: string = 'All';
+  courtForumFilter: string = 'All';
 
   pagination: PaginationMeta = {
     page: 1,
@@ -268,7 +330,11 @@ export class CasesComponent implements OnInit {
       })
       .subscribe({
         next: res => {
-          this.cases = res.data;
+          let list = res.data;
+          if (this.courtForumFilter && this.courtForumFilter !== 'All') {
+            list = list.filter(c => c.court_forum === this.courtForumFilter);
+          }
+          this.cases = list;
           this.pagination = res.pagination;
           this.loading = false;
         },
@@ -283,6 +349,7 @@ export class CasesComponent implements OnInit {
     this.searchQuery = '';
     this.statusFilter = 'All';
     this.caseTypeFilter = 'All';
+    this.courtForumFilter = 'All';
     this.pagination.page = 1;
     this.loadCases();
   }
@@ -333,6 +400,69 @@ export class CasesComponent implements OnInit {
     }
   }
 
+  syncCaseECourts(c: Case) {
+    if (!c.id) return;
+    this.syncingCaseId = c.id;
+    this.caseService.syncECourts(c.id).subscribe({
+      next: res => {
+        this.syncingCaseId = null;
+        this.notificationService.success(res.message || 'e-Courts sync completed!', 'e-Courts Synced');
+        this.loadCases();
+      },
+      error: err => {
+        this.syncingCaseId = null;
+        this.notificationService.error(err.error?.message || err.message || 'Failed to sync with e-Courts.');
+      }
+    });
+  }
+
+  syncAllCases() {
+    this.syncingAll = true;
+    this.caseService.syncAllECourts().subscribe({
+      next: res => {
+        this.syncingAll = false;
+        this.notificationService.success(res.message, 'Automated e-Courts Sync');
+        this.loadCases();
+      },
+      error: err => {
+        this.syncingAll = false;
+        this.notificationService.error('Failed to run batch e-Courts sync.');
+      }
+    });
+  }
+
+  copyToClipboard(text?: string) {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    this.notificationService.info(`Copied CNR: ${text}`, 'Clipboard');
+  }
+
+  getForumIcon(forum?: string): string {
+    switch (forum) {
+      case 'High Court': return 'bi-bank';
+      case 'Criminal Court': return 'bi-shield-shaded';
+      case 'Family Court': return 'bi-people-fill';
+      case 'Commercial Court': return 'bi-briefcase-fill';
+      case 'NCLT Tribunal': return 'bi-building';
+      case 'Consumer Forum': return 'bi-scale';
+      case 'Supreme Court': return 'bi-gem';
+      default: return 'bi-building-gear';
+    }
+  }
+
+  getForumBadgeClass(forum?: string): string {
+    switch (forum) {
+      case 'High Court': return 'bg-primary-subtle text-primary border border-primary-subtle';
+      case 'Criminal Court': return 'bg-danger-subtle text-danger border border-danger-subtle';
+      case 'Family Court': return 'bg-purple-subtle text-purple border border-purple-subtle';
+      case 'Commercial Court': return 'bg-success-subtle text-success border border-success-subtle';
+      case 'NCLT Tribunal': return 'bg-warning-subtle text-warning border border-warning-subtle';
+      case 'Consumer Forum': return 'bg-info-subtle text-info border border-info-subtle';
+      case 'Supreme Court': return 'bg-warning-subtle text-dark border border-warning';
+      default: return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+    }
+  }
+
   confirmDelete(c: Case) {
     this.caseToDelete = c;
     this.isDeleteModalOpen = true;
@@ -357,7 +487,7 @@ export class CasesComponent implements OnInit {
 
   formatCurrency(val: any): string {
     const num = parseFloat(val) || 0;
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   calculatePercentage(spent: any, budget: any): number {

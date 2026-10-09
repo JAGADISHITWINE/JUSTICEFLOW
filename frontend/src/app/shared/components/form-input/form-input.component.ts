@@ -59,7 +59,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
         margin-bottom: 0.4rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #2C3E50;
+        color: var(--jf-text-primary, #2C3E50);
       }
 
       .input-wrapper {
@@ -70,7 +70,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
         .input-icon {
           position: absolute;
           left: 0.85rem;
-          color: #7F8C8D;
+          color: var(--jf-text-muted, #7F8C8D);
           font-size: 1rem;
           pointer-events: none;
           z-index: 2;
@@ -91,7 +91,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
           transform: translateY(-50%);
           background: transparent;
           border: none;
-          color: #64748B;
+          color: var(--jf-text-muted, #64748B);
           padding: 0.35rem 0.5rem;
           font-size: 1.05rem;
           cursor: pointer;
@@ -103,13 +103,13 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
           z-index: 3;
 
           &:hover {
-            color: #1E293B;
-            background-color: #F1F5F9;
+            color: var(--jf-text-primary, #1E293B);
+            background-color: var(--jf-bg-subtle, #F1F5F9);
           }
 
           &:focus {
             outline: none;
-            color: #2563EB;
+            color: var(--jf-accent-primary, #2563EB);
           }
         }
       }
@@ -119,16 +119,16 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
         min-height: 42px;
         padding: 0.6rem 0.85rem;
         font-size: 0.9rem;
-        color: #0F172A;
-        background-color: #FFFFFF;
-        border: 1px solid #CBD5E1;
+        color: var(--jf-text-primary, #0F172A);
+        background-color: var(--jf-bg-input, #FFFFFF);
+        border: 1px solid var(--jf-border-input, #CBD5E1);
         border-radius: 8px;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
 
         &:focus {
           outline: none;
-          border-color: #2563EB;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+          border-color: var(--jf-accent-primary, #2563EB);
+          box-shadow: 0 0 0 3px var(--jf-accent-glow, rgba(37, 99, 235, 0.15));
         }
 
         &.has-error {
@@ -139,7 +139,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
         }
 
         &:disabled {
-          background-color: #F8FAFC;
+          background-color: var(--jf-bg-subtle, #F8FAFC);
           cursor: not-allowed;
         }
       }

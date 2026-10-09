@@ -39,4 +39,12 @@ export class CaseService {
   getDashboardStats(): Observable<{ success: boolean; data: DashboardData }> {
     return this.api.get<{ success: boolean; data: DashboardData }>('cases/stats/dashboard');
   }
+
+  syncECourts(id: number): Observable<{ success: boolean; message: string; data: any }> {
+    return this.api.post<{ success: boolean; message: string; data: any }>(`cases/${id}/sync-ecourts`, {});
+  }
+
+  syncAllECourts(): Observable<{ success: boolean; message: string; data: any }> {
+    return this.api.post<{ success: boolean; message: string; data: any }>('cases/sync-all-ecourts', {});
+  }
 }

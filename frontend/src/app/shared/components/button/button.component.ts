@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <button
       [type]="type"
       [disabled]="disabled || loading"
-      class="btn"
+      class="btn mx-1"
       [ngClass]="getButtonClass()"
       (click)="onClick($event)">
       <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

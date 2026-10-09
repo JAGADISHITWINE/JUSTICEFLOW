@@ -36,7 +36,11 @@ export interface Case {
   client_id: number;
   case_name: string;
   case_number?: string;
+  cnr_number?: string;
   case_type?: string;
+  court_forum?: string;
+  fir_number?: string;
+  police_station?: string;
   description?: string;
   status: 'Open' | 'Closed' | 'Pending' | 'On Hold';
   court_name?: string;

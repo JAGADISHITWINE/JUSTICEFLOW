@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService, ToastMessage } from './core/services/notification.service';
+import { ThemeService } from './core/services/theme.service';
 import { User } from './core/models/models';
 import { AppNavbarComponent } from './shared/components/navbar/navbar.component';
 import { AppSidebarComponent } from './shared/components/sidebar/sidebar.component';
@@ -25,7 +26,8 @@ export class AppComponent implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private themeService: ThemeService
   ) {
     // Check path immediately on construction
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
