@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { PracticeModeService } from '../../../core/services/practice-mode.service';
 import { NotificationService, AppNotification } from '../../../core/services/notification.service';
 import { User } from '../../../core/models/models';
 import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
@@ -39,17 +40,24 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
           <app-theme-toggle variant="icon"></app-theme-toggle>
         </div>
 
+        <!-- Practice Mode Switcher (Firm vs Solo Chambers) -->
+        <div class="practice-mode-pill d-flex align-items-center gap-1 px-2 py-1 rounded-pill border"
+             [ngClass]="practiceModeService.isFirmMode ? 'bg-primary-subtle text-primary border-primary-subtle' : 'bg-success-subtle text-success border-success-subtle'"
+             (click)="togglePracticeMode()"
+             style="cursor: pointer; font-size: 11.5px;"
+             [title]="practiceModeService.isFirmMode ? 'Switch to Solo Chambers Mode' : 'Switch to Multi-Team Law Firm Mode'">
+          <i [class]="practiceModeService.isFirmMode ? 'bi bi-buildings-fill me-1' : 'bi bi-person-workspace me-1'"></i>
+          <span class="fw-bold">{{ practiceModeService.isFirmMode ? 'Law Firm Mode' : 'Solo Advocate Mode' }}</span>
+          <span class="badge bg-white text-dark border ms-1" style="font-size: 9px; padding: 2px 4px;">
+            {{ practiceModeService.isFirmMode ? 'Multi-Team' : 'Solo' }}
+          </span>
+        </div>
+
         <!-- Active Secure Session Indicator -->
         <div class="session-timer-badge d-none d-lg-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-light text-secondary border-secondary-subtle"
              title="Session is secure & active. Your work will not be interrupted.">
           <i class="bi bi-shield-check text-success"></i>
           <span class="small fw-semibold" style="font-size: 11px;">Active Session</span>
-        </div>
-
-        <!-- Practice Area Quick Indicator -->
-        <div class="practice-badge d-none d-xl-flex">
-          <span class="pulse-indicator"></span>
-          <span>Active</span>
         </div>
 
         <!-- Notification Center Bell & Dropdown Flyout -->
@@ -828,9 +836,20 @@ export class AppNavbarComponent {
   constructor(
     private authService: AuthService,
     public themeService: ThemeService,
+    public practiceModeService: PracticeModeService,
     private notificationService: NotificationService,
     private router: Router
   ) { }
+
+  togglePracticeMode() {
+    this.practiceModeService.togglePracticeMode();
+    const mode = this.practiceModeService.currentMode;
+    if (mode === 'Firm') {
+      this.notificationService.info('Switched to Enterprise Law Firm Mode: Multi-Team, Practice Groups & Shared Cause Lists enabled.', 'Practice Mode: Law Firm');
+    } else {
+      this.notificationService.info('Switched to Solo Advocate Mode: Streamlined independent chambers workflow enabled.', 'Practice Mode: Solo Advocate');
+    }
+  }
 
   toggleSidebar() {
     this.sidebarToggle.emit();

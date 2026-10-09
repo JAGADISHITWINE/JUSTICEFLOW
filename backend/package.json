@@ -13,7 +13,10 @@
     "start:time": "node time-tracking-service/server.js",
     "start:billing": "node billing-service/server.js",
     "start:calendar": "node calendar-service/server.js",
-    "db:setup": "node database/seed.js"
+    "db:setup": "node database/seed.js",
+    "db:seed": "node database/seed.js",
+    "db:dump": "mysqldump -u root -p'Itwinetech@1234' justiceflow_db > database/justiceflow_dump.sql",
+    "db:import": "mysql -u root -p'Itwinetech@1234' justiceflow_db < database/justiceflow_dump.sql"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

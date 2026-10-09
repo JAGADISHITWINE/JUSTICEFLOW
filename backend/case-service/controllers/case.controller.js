@@ -2,10 +2,20 @@ const CaseModel = require('../models/case.model');
 const { logAudit } = require('../../shared/audit');
 
 class CaseController {
+  static async getTeams(req, res) {
+    try {
+      const teams = await CaseModel.getTeams();
+      return res.json({ success: true, data: teams });
+    } catch (err) {
+      console.error('[Case GetTeams Error]', err);
+      return res.status(500).json({ success: false, message: 'Failed to retrieve teams.' });
+    }
+  }
+
   static async getAll(req, res) {
     try {
-      const { search, status, case_type, client_id, page = 1, limit = 10 } = req.query;
-      const result = await CaseModel.findAll({ search, status, case_type, client_id, page, limit });
+      const { search, status, case_type, court_forum, team_id, client_id, page = 1, limit = 10 } = req.query;
+      const result = await CaseModel.findAll({ search, status, case_type, court_forum, team_id, client_id, page, limit });
       return res.json({
         success: true,
         ...result

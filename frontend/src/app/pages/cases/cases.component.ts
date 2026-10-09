@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CaseService } from '../../core/services/case.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Case, PaginationMeta } from '../../core/models/models';
+import { PracticeModeService } from '../../core/services/practice-mode.service';
+import { Case, PaginationMeta, Team } from '../../core/models/models';
 import { AppCardComponent } from '../../shared/components/card/card.component';
 import { AppBadgeComponent } from '../../shared/components/badge/badge.component';
 import { AppButtonComponent } from '../../shared/components/button/button.component';
@@ -26,6 +27,30 @@ import { CaseFormComponent } from './case-form.component';
   ],
   template: `
     <div class="cases-page">
+      <!-- Practice Mode Info Banner -->
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 text-white"
+           [ngClass]="practiceMode.isFirmMode ? 'firm-banner' : 'solo-banner'">
+        <div class="d-flex align-items-center gap-3">
+          <div class="mode-icon-circle">
+            <i class="bi" [ngClass]="practiceMode.isFirmMode ? 'bi-buildings-fill' : 'bi-person-workspace'"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-6">
+              {{ practiceMode.isFirmMode ? 'Enterprise Law Firm Practice & Multi-Team Chambers' : 'Independent Advocate & Solo Chambers' }}
+            </div>
+            <div class="small opacity-75">
+              {{ practiceMode.isFirmMode ? 'Multi-department docketing, team allocation, cross-counsel cause lists, and e-Courts sync' : 'Direct personal litigation docket, client retainers, and single-advocate court diary' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-light text-dark fw-bold px-3" (click)="togglePracticeMode()">
+            <i class="bi bi-arrow-left-right me-1"></i> Switch to {{ practiceMode.isFirmMode ? 'Solo Mode' : 'Firm Mode' }}
+          </button>
+        </div>
+      </div>
+
       <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
@@ -53,6 +78,30 @@ import { CaseFormComponent } from './case-form.component';
             variant="primary"
             (btnClick)="openAddModal()">
           </app-button>
+        </div>
+      </div>
+
+      <!-- Firm Mode Team / Practice Group Pills -->
+      <div *ngIf="practiceMode.isFirmMode" class="mb-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="text-muted small fw-bold text-uppercase me-2"><i class="bi bi-diagram-3-fill me-1"></i> Practice Groups:</span>
+          
+          <button
+            class="btn btn-sm rounded-pill px-3 fw-semibold"
+            [ngClass]="selectedTeamId === null ? 'btn-dark' : 'btn-outline-secondary'"
+            (click)="filterByTeam(null)">
+            All Firm Matters ({{ cases.length }})
+          </button>
+
+          <button
+            *ngFor="let team of teams"
+            class="btn btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+            [ngClass]="selectedTeamId === team.id ? 'btn-primary text-white shadow-sm' : 'btn-outline-secondary'"
+            (click)="filterByTeam(team.id)">
+            <i class="bi" [ngClass]="team.icon || 'bi-briefcase'"></i>
+            <span>{{ team.name }}</span>
+            <span class="badge rounded-pill bg-light text-dark ms-1" style="font-size: 0.65rem;">{{ getCaseCountForTeam(team.id) }}</span>
+          </button>
         </div>
       </div>
 
@@ -111,6 +160,7 @@ import { CaseFormComponent } from './case-form.component';
             <thead>
               <tr>
                 <th>Matter & Court Forum</th>
+                <th *ngIf="practiceMode.isFirmMode">Practice Group / Team</th>
                 <th>Official CNR / Docket</th>
                 <th>Retained Client</th>
                 <th>Status</th>
@@ -120,7 +170,7 @@ import { CaseFormComponent } from './case-form.component';
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let c of cases">
+              <tr *ngFor="let c of displayCases">
                 <!-- Case Name & Forum -->
                 <td style="max-width: 280px;">
                   <div class="d-flex align-items-start gap-2">
@@ -140,6 +190,16 @@ import { CaseFormComponent } from './case-form.component';
                       </div>
                     </div>
                   </div>
+                </td>
+
+                <!-- Practice Group / Team (Firm Mode Only) -->
+                <td *ngIf="practiceMode.isFirmMode">
+                  <div *ngIf="getTeamForCase(c) as t" class="d-flex align-items-center gap-1">
+                    <span class="badge rounded-pill px-2 py-1" [style.backgroundColor]="t.color" [style.color]="'#fff'">
+                      <i class="bi" [ngClass]="t.icon"></i> {{ t.name }}
+                    </span>
+                  </div>
+                  <span *ngIf="!getTeamForCase(c)" class="text-muted small">General Litigation</span>
                 </td>
 
                 <!-- CNR & Docket -->
@@ -216,8 +276,8 @@ import { CaseFormComponent } from './case-form.component';
                 </td>
               </tr>
 
-              <tr *ngIf="!loading && cases.length === 0">
-                <td colspan="7" class="text-center py-5 text-muted">
+              <tr *ngIf="!loading && displayCases.length === 0">
+                <td [attr.colspan]="practiceMode.isFirmMode ? 8 : 7" class="text-center py-5 text-muted">
                   <i class="bi bi-folder2-open display-6 d-block mb-2 text-muted"></i>
                   No legal matters match your criteria.
                 </td>
@@ -226,17 +286,42 @@ import { CaseFormComponent } from './case-form.component';
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div *ngIf="pagination.total > 0" class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-          <small class="text-muted">Showing total <strong>{{ pagination.total }}</strong> docketed matters</small>
-          <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
-              Previous
-            </button>
-            <button class="btn btn-sm btn-primary text-white" disabled>{{ pagination.page }}</button>
-            <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= pagination.totalPages" (click)="changePage(pagination.page + 1)">
-              Next
-            </button>
+        <!-- Pagination with Per-Page Dropdown -->
+        <div *ngIf="pagination.total > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <small class="text-muted">
+              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
+              <strong>{{ getShowingEndCount() }}</strong> of 
+              <strong>{{ pagination.total }}</strong> docketed matters
+            </small>
+
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
+              <select 
+                class="form-select form-select-sm" 
+                style="width: 90px;" 
+                [(ngModel)]="pagination.limit" 
+                (change)="onPageSizeChange()">
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="15">15</option>
+                <option [ngValue]="20">20</option>
+              </select>
+              <span class="small text-muted">per page</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
+                <i class="bi bi-chevron-left me-1"></i> Prev
+              </button>
+              <button class="btn btn-sm btn-primary text-white px-3" disabled>{{ pagination.page }}</button>
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= pagination.totalPages" (click)="changePage(pagination.page + 1)">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+              </button>
+            </div>
           </div>
         </div>
       </app-card>
@@ -277,6 +362,24 @@ import { CaseFormComponent } from './case-form.component';
         font-size: 1.65rem;
         color: #1e293b;
       }
+      .firm-banner {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-left: 5px solid #3b82f6;
+      }
+      .solo-banner {
+        background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+        border-left: 5px solid #10b981;
+      }
+      .mode-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+      }
       .text-hover-blue:hover {
         color: #2563eb !important;
       }
@@ -285,6 +388,7 @@ import { CaseFormComponent } from './case-form.component';
 })
 export class CasesComponent implements OnInit {
   cases: Case[] = [];
+  teams: Team[] = [];
   loading: boolean = false;
   saving: boolean = false;
   deleting: boolean = false;
@@ -295,10 +399,11 @@ export class CasesComponent implements OnInit {
   statusFilter: string = 'All';
   caseTypeFilter: string = 'All';
   courtForumFilter: string = 'All';
+  selectedTeamId: number | null = null;
 
   pagination: PaginationMeta = {
     page: 1,
-    limit: 10,
+    limit: 5,
     total: 0,
     totalPages: 1
   };
@@ -311,11 +416,62 @@ export class CasesComponent implements OnInit {
 
   constructor(
     private caseService: CaseService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    public practiceMode: PracticeModeService
   ) {}
 
   ngOnInit(): void {
+    this.loadTeams();
     this.loadCases();
+  }
+
+  onPageSizeChange() {
+    this.pagination.page = 1;
+    this.loadCases();
+  }
+
+  getShowingEndCount(): number {
+    return Math.min(this.pagination.page * this.pagination.limit, this.pagination.total);
+  }
+
+  loadTeams() {
+    this.caseService.getTeams().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.teams = res.data;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  togglePracticeMode() {
+    this.practiceMode.togglePracticeMode();
+    this.notificationService.info(
+      `Switched to ${this.practiceMode.isFirmMode ? 'Law Firm Mode (Multi-Team Enterprise)' : 'Solo Advocate Mode (Direct Practice)'}`,
+      'Practice Mode'
+    );
+  }
+
+  filterByTeam(teamId: number | null) {
+    this.selectedTeamId = teamId;
+  }
+
+  get displayCases(): Case[] {
+    if (!this.selectedTeamId || !this.practiceMode.isFirmMode) {
+      return this.cases;
+    }
+    return this.cases.filter(c => c.team_id === this.selectedTeamId);
+  }
+
+  getCaseCountForTeam(teamId?: number): number {
+    if (!teamId) return 0;
+    return this.cases.filter(c => c.team_id === teamId).length;
+  }
+
+  getTeamForCase(c: Case): Team | undefined {
+    if (!c.team_id) return undefined;
+    return this.teams.find(t => t.id === c.team_id);
   }
 
   loadCases() {

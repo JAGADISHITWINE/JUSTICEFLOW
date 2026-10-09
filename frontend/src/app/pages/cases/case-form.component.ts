@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Case, Client } from '../../core/models/models';
+import { Case, Client, Team } from '../../core/models/models';
 import { ClientService } from '../../core/services/client.service';
+import { CaseService } from '../../core/services/case.service';
 import { AppModalComponent } from '../../shared/components/modal/modal.component';
 import { AppFormInputComponent } from '../../shared/components/form-input/form-input.component';
 import { AppFormSelectComponent, SelectOption } from '../../shared/components/form-select/form-select.component';
@@ -135,6 +136,17 @@ import { AppButtonComponent } from '../../shared/components/button/button.compon
             </app-form-select>
           </div>
 
+          <!-- Practice Group / Firm Team (Firm & Solo Mode) -->
+          <div class="col-12 col-md-6">
+            <app-form-select
+              label="Assigned Practice Group / Department"
+              [options]="teamOptions"
+              [required]="true"
+              [(ngModel)]="formData.team_id"
+              name="team_id">
+            </app-form-select>
+          </div>
+
           <!-- Practice Area / Case Type -->
           <div class="col-12 col-md-6">
             <app-form-select
@@ -249,6 +261,7 @@ export class CaseFormComponent implements OnInit, OnChanges {
 
   isEditMode: boolean = false;
   clientOptions: SelectOption[] = [];
+  teamOptions: SelectOption[] = [];
   customForumName: string = '';
 
   formData: Partial<Case> = {
@@ -257,6 +270,7 @@ export class CaseFormComponent implements OnInit, OnChanges {
     cnr_number: '',
     client_id: 1,
     court_forum: 'Commercial Court',
+    team_id: 1,
     case_type: 'Commercial Litigation',
     fir_number: '',
     police_station: '',
@@ -302,10 +316,46 @@ export class CaseFormComponent implements OnInit, OnChanges {
     { label: 'Closed / Final Order & Disposed', value: 'Closed' }
   ];
 
-  constructor(private clientService: ClientService) {}
+  constructor(
+    private clientService: ClientService,
+    private caseService: CaseService
+  ) {}
 
   ngOnInit(): void {
     this.loadClientsList();
+    this.loadTeamsList();
+  }
+
+  loadTeamsList() {
+    this.caseService.getTeams().subscribe({
+      next: (res: { success: boolean; data: Team[] }) => {
+        if (res.data && res.data.length > 0) {
+          this.teamOptions = res.data.map((t: Team) => ({
+            label: `${t.name} (${t.code})`,
+            value: t.id
+          }));
+        } else {
+          this.teamOptions = [
+            { label: '🟢 Commercial & Civil Litigation Group (COMM-LIT)', value: 1 },
+            { label: '🔴 Criminal Defense & White-Collar Practice (CRIM-DEF)', value: 2 },
+            { label: '💜 Family, Probate & Private Client Trust (FAM-TRUST)', value: 3 },
+            { label: '🟠 Insolvency, NCLT & Banking Resolution (IBC-NCLT)', value: 4 },
+            { label: '🔵 Intellectual Property (IPR) & Technology (IPR-TECH)', value: 5 },
+            { label: '🛡️ Commercial Arbitration & Infra Disputes (ARB-INFRA)', value: 6 }
+          ];
+        }
+      },
+      error: () => {
+        this.teamOptions = [
+          { label: '🟢 Commercial & Civil Litigation Group (COMM-LIT)', value: 1 },
+          { label: '🔴 Criminal Defense & White-Collar Practice (CRIM-DEF)', value: 2 },
+          { label: '💜 Family, Probate & Private Client Trust (FAM-TRUST)', value: 3 },
+          { label: '🟠 Insolvency, NCLT & Banking Resolution (IBC-NCLT)', value: 4 },
+          { label: '🔵 Intellectual Property (IPR) & Technology (IPR-TECH)', value: 5 },
+          { label: '🛡️ Commercial Arbitration & Infra Disputes (ARB-INFRA)', value: 6 }
+        ];
+      }
+    });
   }
 
   loadClientsList() {
@@ -329,6 +379,7 @@ export class CaseFormComponent implements OnInit, OnChanges {
         this.formData = {
           ...this.caseItem,
           court_forum: this.caseItem.court_forum || 'Commercial Court',
+          team_id: this.caseItem.team_id || 1,
           filing_date: this.caseItem.filing_date ? this.caseItem.filing_date.slice(0, 10) : '',
           expected_close_date: this.caseItem.expected_close_date ? this.caseItem.expected_close_date.slice(0, 10) : ''
         };
@@ -346,6 +397,7 @@ export class CaseFormComponent implements OnInit, OnChanges {
           cnr_number: '',
           client_id: this.clientOptions.length ? Number(this.clientOptions[0].value) : 1,
           court_forum: 'Commercial Court',
+          team_id: 1,
           case_type: 'Commercial Litigation',
           fir_number: '',
           police_station: '',
@@ -365,6 +417,11 @@ export class CaseFormComponent implements OnInit, OnChanges {
     if (forum !== 'Custom Forum') {
       this.customForumName = '';
     }
+    // Auto-map team suggestion
+    if (forum === 'Criminal Court') this.formData.team_id = 2;
+    else if (forum === 'Family Court') this.formData.team_id = 3;
+    else if (forum === 'NCLT Tribunal') this.formData.team_id = 4;
+    else if (forum === 'Commercial Court') this.formData.team_id = 1;
   }
 
   onCustomForumNameChange(val: string) {

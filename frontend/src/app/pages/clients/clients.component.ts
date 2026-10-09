@@ -153,17 +153,42 @@ import { ClientFormComponent } from './client-form.component';
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div *ngIf="pagination.total > 0" class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-          <small class="text-muted">Total: <strong>{{ pagination.total }}</strong> clients</small>
-          <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
-              Previous
-            </button>
-            <button class="btn btn-sm btn-secondary text-white" disabled>{{ pagination.page }}</button>
-            <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= pagination.totalPages" (click)="changePage(pagination.page + 1)">
-              Next
-            </button>
+        <!-- Pagination with Per-Page Dropdown -->
+        <div *ngIf="pagination.total > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <small class="text-muted">
+              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
+              <strong>{{ getShowingEndCount() }}</strong> of 
+              <strong>{{ pagination.total }}</strong> clients
+            </small>
+
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
+              <select 
+                class="form-select form-select-sm" 
+                style="width: 90px;" 
+                [(ngModel)]="pagination.limit" 
+                (change)="onPageSizeChange()">
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="15">15</option>
+                <option [ngValue]="20">20</option>
+              </select>
+              <span class="small text-muted">per page</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
+                <i class="bi bi-chevron-left me-1"></i> Prev
+              </button>
+              <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= pagination.totalPages" (click)="changePage(pagination.page + 1)">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+              </button>
+            </div>
           </div>
         </div>
       </app-card>
@@ -285,7 +310,7 @@ export class ClientsComponent implements OnInit {
 
   pagination: PaginationMeta = {
     page: 1,
-    limit: 10,
+    limit: 5,
     total: 0,
     totalPages: 1
   };
@@ -307,6 +332,15 @@ export class ClientsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadClients();
+  }
+
+  onPageSizeChange() {
+    this.pagination.page = 1;
+    this.loadClients();
+  }
+
+  getShowingEndCount(): number {
+    return Math.min(this.pagination.page * this.pagination.limit, this.pagination.total);
   }
 
   loadClients() {

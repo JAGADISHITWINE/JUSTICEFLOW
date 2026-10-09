@@ -1,7 +1,11 @@
 const { query } = require('../../database/db');
 
 class CaseModel {
-  static async findAll({ search, status, case_type, client_id, page = 1, limit = 10 }) {
+  static async getTeams() {
+    return query('SELECT * FROM teams ORDER BY id ASC');
+  }
+
+  static async findAll({ search, status, case_type, court_forum, team_id, client_id, page = 1, limit = 10 }) {
     let sql = `
       SELECT 
         c.*, 
@@ -9,19 +13,24 @@ class CaseModel {
         cl.email as client_email,
         cl.phone as client_phone,
         u.name as lead_lawyer,
+        t.name as team_name,
+        t.code as team_code,
+        t.color as team_color,
+        t.icon as team_icon,
         (SELECT COUNT(*) FROM documents WHERE case_id = c.id) as doc_count,
         (SELECT COALESCE(SUM(hours), 0) FROM time_entries WHERE case_id = c.id) as total_hours
       FROM cases c
       JOIN clients cl ON c.client_id = cl.id
       LEFT JOIN users u ON c.user_id = u.id
+      LEFT JOIN teams t ON c.team_id = t.id
       WHERE 1=1
     `;
     const params = [];
 
     if (search) {
-      sql += ` AND (c.case_name LIKE ? OR c.case_number LIKE ? OR c.court_name LIKE ? OR cl.name LIKE ?)`;
+      sql += ` AND (c.case_name LIKE ? OR c.case_number LIKE ? OR c.cnr_number LIKE ? OR c.court_name LIKE ? OR cl.name LIKE ?)`;
       const term = `%${search}%`;
-      params.push(term, term, term, term);
+      params.push(term, term, term, term, term);
     }
 
     if (status && status !== 'All') {
@@ -32,6 +41,16 @@ class CaseModel {
     if (case_type && case_type !== 'All') {
       sql += ` AND c.case_type = ?`;
       params.push(case_type);
+    }
+
+    if (court_forum && court_forum !== 'All') {
+      sql += ` AND c.court_forum = ?`;
+      params.push(court_forum);
+    }
+
+    if (team_id && team_id !== 'All' && team_id !== '0') {
+      sql += ` AND c.team_id = ?`;
+      params.push(parseInt(team_id, 10));
     }
 
     if (client_id) {
@@ -48,9 +67,9 @@ class CaseModel {
     `;
     const countParams = [];
     if (search) {
-      countSql += ` AND (c.case_name LIKE ? OR c.case_number LIKE ? OR c.court_name LIKE ? OR cl.name LIKE ?)`;
+      countSql += ` AND (c.case_name LIKE ? OR c.case_number LIKE ? OR c.cnr_number LIKE ? OR c.court_name LIKE ? OR cl.name LIKE ?)`;
       const term = `%${search}%`;
-      countParams.push(term, term, term, term);
+      countParams.push(term, term, term, term, term);
     }
     if (status && status !== 'All') {
       countSql += ` AND c.status = ?`;
@@ -59,6 +78,14 @@ class CaseModel {
     if (case_type && case_type !== 'All') {
       countSql += ` AND c.case_type = ?`;
       countParams.push(case_type);
+    }
+    if (court_forum && court_forum !== 'All') {
+      countSql += ` AND c.court_forum = ?`;
+      countParams.push(court_forum);
+    }
+    if (team_id && team_id !== 'All' && team_id !== '0') {
+      countSql += ` AND c.team_id = ?`;
+      countParams.push(parseInt(team_id, 10));
     }
     if (client_id) {
       countSql += ` AND c.client_id = ?`;
@@ -93,10 +120,16 @@ class CaseModel {
         cl.phone as client_phone,
         cl.address as client_address,
         u.name as lead_lawyer,
-        u.email as lawyer_email
+        u.email as lawyer_email,
+        t.name as team_name,
+        t.code as team_code,
+        t.color as team_color,
+        t.icon as team_icon,
+        t.lead_counsel as team_lead
       FROM cases c
       JOIN clients cl ON c.client_id = cl.id
       LEFT JOIN users u ON c.user_id = u.id
+      LEFT JOIN teams t ON c.team_id = t.id
       WHERE c.id = ?`,
       [id]
     );
@@ -144,6 +177,7 @@ class CaseModel {
       cnr_number,
       case_type,
       court_forum,
+      team_id,
       fir_number,
       police_station,
       description,
@@ -161,8 +195,8 @@ class CaseModel {
 
     const result = await query(
       `INSERT INTO cases 
-      (user_id, client_id, case_name, case_number, cnr_number, case_type, court_forum, fir_number, police_station, description, status, court_name, judge_name, filing_date, expected_close_date, budget, spent)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (user_id, client_id, case_name, case_number, cnr_number, case_type, court_forum, team_id, fir_number, police_station, description, status, court_name, judge_name, filing_date, expected_close_date, budget, spent)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user_id,
         client_id,
@@ -171,6 +205,7 @@ class CaseModel {
         cnr_number || null,
         case_type || 'Commercial Litigation',
         court_forum || 'Commercial Court',
+        team_id || 1,
         fir_number || null,
         police_station || null,
         description || null,
@@ -196,6 +231,7 @@ class CaseModel {
       cnr_number,
       case_type,
       court_forum,
+      team_id,
       fir_number,
       police_station,
       description,
@@ -217,6 +253,7 @@ class CaseModel {
         cnr_number = COALESCE(?, cnr_number),
         case_type = COALESCE(?, case_type),
         court_forum = COALESCE(?, court_forum),
+        team_id = COALESCE(?, team_id),
         fir_number = COALESCE(?, fir_number),
         police_station = COALESCE(?, police_station),
         description = COALESCE(?, description),
@@ -236,6 +273,7 @@ class CaseModel {
         cnr_number,
         case_type,
         court_forum,
+        team_id,
         fir_number,
         police_station,
         description,

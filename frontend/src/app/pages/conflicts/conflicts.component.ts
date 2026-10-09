@@ -242,7 +242,7 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of history">
+              <tr *ngFor="let item of paginatedHistory">
                 <td class="font-monospace fw-semibold text-primary">
                   {{ item.audit_certificate_id || 'CERT-ETHICS-' + item.id }}
                 </td>
@@ -266,13 +266,52 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
                   </a>
                 </td>
               </tr>
-              <tr *ngIf="history.length === 0">
+              <tr *ngIf="paginatedHistory.length === 0">
                 <td colspan="8" class="text-center py-4 text-muted">
                   No conflict check audits filed yet. Run a search above to generate certified records.
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination with Per-Page Dropdown -->
+        <div *ngIf="history.length > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <small class="text-muted">
+              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
+              <strong>{{ getShowingEndCount() }}</strong> of 
+              <strong>{{ history.length }}</strong> audit certificates
+            </small>
+
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
+              <select 
+                class="form-select form-select-sm" 
+                style="width: 90px;" 
+                [(ngModel)]="pagination.limit" 
+                (change)="onPageSizeChange()">
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="15">15</option>
+                <option [ngValue]="20">20</option>
+              </select>
+              <span class="small text-muted">per page</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">Page {{ pagination.page }} of {{ totalPages }}</span>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
+                <i class="bi bi-chevron-left me-1"></i> Prev
+              </button>
+              <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= totalPages" (click)="changePage(pagination.page + 1)">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </app-card>
     </div>
@@ -324,6 +363,11 @@ export class ConflictsComponent implements OnInit {
     witnesses: ''
   };
 
+  pagination = {
+    page: 1,
+    limit: 5
+  };
+
   constructor(
     public conflictService: ConflictService,
     private notify: NotificationService
@@ -333,12 +377,34 @@ export class ConflictsComponent implements OnInit {
     this.loadHistory();
   }
 
+  get paginatedHistory(): ConflictCheckRecord[] {
+    const startIndex = (this.pagination.page - 1) * this.pagination.limit;
+    return this.history.slice(startIndex, startIndex + this.pagination.limit);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.history.length / this.pagination.limit) || 1;
+  }
+
+  changePage(page: number): void {
+    this.pagination.page = page;
+  }
+
+  onPageSizeChange(): void {
+    this.pagination.page = 1;
+  }
+
+  getShowingEndCount(): number {
+    return Math.min(this.pagination.page * this.pagination.limit, this.history.length);
+  }
+
   loadHistory(): void {
     this.conflictService.getConflictHistory().subscribe({
       next: (res) => {
         if (res.success) {
           this.stats = res.stats;
           this.history = res.data;
+          this.pagination.page = 1;
         }
       }
     });

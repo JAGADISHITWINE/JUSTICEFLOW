@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Case, DashboardData, PaginatedResult } from '../models/models';
+import { Case, DashboardData, PaginatedResult, Team } from '../models/models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,10 +9,16 @@ import { Case, DashboardData, PaginatedResult } from '../models/models';
 export class CaseService {
   constructor(private api: ApiService) {}
 
+  getTeams(): Observable<{ success: boolean; data: Team[] }> {
+    return this.api.get<{ success: boolean; data: Team[] }>('cases/teams');
+  }
+
   getCases(params?: {
     search?: string;
     status?: string;
     case_type?: string;
+    court_forum?: string;
+    team_id?: number | string;
     client_id?: number;
     page?: number;
     limit?: number;

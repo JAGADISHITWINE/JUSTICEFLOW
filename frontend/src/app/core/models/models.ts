@@ -1,9 +1,24 @@
+export interface Team {
+  id: number;
+  name: string;
+  code: string;
+  color?: string;
+  icon?: string;
+  description?: string;
+  lead_counsel?: string;
+  case_count?: number;
+  created_at?: string;
+}
+
 export interface User {
   id: number;
   email: string;
   name: string;
   avatar?: string;
   role: 'admin' | 'lawyer' | 'assistant';
+  practice_mode?: 'Solo' | 'Firm';
+  designation?: string;
+  team_id?: number;
   is_email_verified?: boolean;
   created_at?: string;
 }
@@ -39,6 +54,12 @@ export interface Case {
   cnr_number?: string;
   case_type?: string;
   court_forum?: string;
+  team_id?: number;
+  team_name?: string;
+  team_code?: string;
+  team_color?: string;
+  team_icon?: string;
+  team_lead?: string;
   fir_number?: string;
   police_station?: string;
   description?: string;

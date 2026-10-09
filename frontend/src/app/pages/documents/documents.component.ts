@@ -94,7 +94,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let doc of documents">
+              <tr *ngFor="let doc of paginatedDocuments">
                 <td>
                   <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
@@ -134,7 +134,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
                 </td>
               </tr>
 
-              <tr *ngIf="!loading && documents.length === 0">
+              <tr *ngIf="!loading && paginatedDocuments.length === 0">
                 <td colspan="6" class="text-center py-5 text-muted">
                   <i class="bi bi-folder-x display-6 d-block mb-2 text-muted"></i>
                   No documents found matching your filter criteria.
@@ -142,6 +142,45 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination with Per-Page Dropdown -->
+        <div *ngIf="documents.length > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <small class="text-muted">
+              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
+              <strong>{{ getShowingEndCount() }}</strong> of 
+              <strong>{{ documents.length }}</strong> repository documents
+            </small>
+
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
+              <select 
+                class="form-select form-select-sm" 
+                style="width: 90px;" 
+                [(ngModel)]="pagination.limit" 
+                (change)="onPageSizeChange()">
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="15">15</option>
+                <option [ngValue]="20">20</option>
+              </select>
+              <span class="small text-muted">per page</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">Page {{ pagination.page }} of {{ totalPages }}</span>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
+                <i class="bi bi-chevron-left me-1"></i> Prev
+              </button>
+              <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
+              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= totalPages" (click)="changePage(pagination.page + 1)">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </app-card>
 
@@ -492,6 +531,11 @@ export class DocumentsComponent implements OnInit {
   loadingRag: boolean = false;
   ragScope: 'client' | 'case' = 'client';
 
+  pagination = {
+    page: 1,
+    limit: 5
+  };
+
   caseOptions: SelectOption[] = [];
   docTypeOptions: SelectOption[] = [
     { label: 'Complaint / Pleadings', value: 'Complaint / Pleadings' },
@@ -513,6 +557,27 @@ export class DocumentsComponent implements OnInit {
     this.loadCasesList();
   }
 
+  get paginatedDocuments(): DocumentItem[] {
+    const startIndex = (this.pagination.page - 1) * this.pagination.limit;
+    return this.documents.slice(startIndex, startIndex + this.pagination.limit);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.documents.length / this.pagination.limit) || 1;
+  }
+
+  changePage(page: number): void {
+    this.pagination.page = page;
+  }
+
+  onPageSizeChange(): void {
+    this.pagination.page = 1;
+  }
+
+  getShowingEndCount(): number {
+    return Math.min(this.pagination.page * this.pagination.limit, this.documents.length);
+  }
+
   loadDocuments() {
     this.loading = true;
     this.documentService
@@ -520,6 +585,7 @@ export class DocumentsComponent implements OnInit {
       .subscribe({
         next: res => {
           this.documents = res.data;
+          this.pagination.page = 1;
           this.loading = false;
         },
         error: () => {

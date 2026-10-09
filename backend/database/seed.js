@@ -239,6 +239,7 @@ Client: CloudByte Infotech Pvt Ltd | Matter: High Court of Karnataka Comm. Suit 
 
   await db.end();
   console.log('✅ Real data seeding completed successfully!');
+  process.exit(0);
 }
 
 setupDatabase().catch(err => {
