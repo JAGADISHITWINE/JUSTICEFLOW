@@ -7,7 +7,10 @@
     "start:backend": "cd backend && npm run start",
     "start:frontend": "cd frontend && npm start",
     "build:frontend": "cd frontend && npm run build",
-    "db:setup": "cd backend && npm run db:setup"
+    "db:setup": "cd backend && npm run db:setup",
+    "db:seed": "node backend/database/seed.js",
+    "db:dump": "mysqldump -u root -p'Itwinetech@1234' justiceflow_db > backend/database/justiceflow_dump.sql",
+    "db:import": "mysql -u root -p'Itwinetech@1234' justiceflow_db < backend/database/justiceflow_dump.sql"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
