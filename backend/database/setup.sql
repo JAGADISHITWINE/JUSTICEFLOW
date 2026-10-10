@@ -43,6 +43,18 @@ CREATE TABLE IF NOT EXISTS clients (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- 2.1 Teams Table (Law Firm Practice Groups & Chambers)
+CREATE TABLE IF NOT EXISTS teams (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(50) NOT NULL,
+  color VARCHAR(50) DEFAULT '#2563EB',
+  icon VARCHAR(100) DEFAULT 'bi-briefcase',
+  description TEXT,
+  lead_counsel VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 3. Cases Table (Indian Courts, High Courts, Commercial Courts, NCLT)
 CREATE TABLE IF NOT EXISTS cases (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,6 +65,7 @@ CREATE TABLE IF NOT EXISTS cases (
   cnr_number VARCHAR(30),
   case_type VARCHAR(100),
   court_forum VARCHAR(100) DEFAULT 'Commercial Court',
+  team_id INT DEFAULT 1,
   fir_number VARCHAR(100),
   police_station VARCHAR(150),
   description TEXT,
@@ -70,7 +83,8 @@ CREATE TABLE IF NOT EXISTS cases (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
 
 -- 4. Documents Table (Pleadings, Vakalatnama, Written Statements, Court Affidavits)

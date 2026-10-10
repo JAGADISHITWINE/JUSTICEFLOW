@@ -39,8 +39,11 @@ a {
 // App Layout Structure
 .app-container {
   display: flex;
+  height: 100vh;
   min-height: 100vh;
+  max-height: 100vh;
   background-color: var(--jf-bg-app, #F8FAFC);
+  overflow: hidden;
 }
 
 .main-layout {
@@ -48,15 +51,32 @@ a {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--jf-bg-app, #F8FAFC);
+  position: relative;
+}
+
+app-navbar {
+  display: block;
+  flex-shrink: 0;
+  height: 64px;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1025;
 }
 
 .main-content {
   flex: 1;
   padding: 1.75rem 2rem;
   background-color: var(--jf-bg-app, #F8FAFC);
-  min-height: calc(100vh - #{$navbar-height});
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 64px);
+  scroll-behavior: smooth;
 }
 
 // Custom Glass & Card utility
@@ -693,6 +713,131 @@ a {
 
     &:hover {
       background: #334155;
+    }
+  }
+}
+
+/* ============================================================
+   Attractive, Modern JusticeFlow Pagination System
+   ============================================================ */
+.jf-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background-color: var(--jf-bg-card, #FFFFFF);
+  border-top: 1px solid var(--jf-border, #E2E8F0);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+
+  .jf-pagination-summary {
+    font-size: 0.85rem;
+    color: var(--jf-text-muted, #64748B);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    .summary-numbers {
+      font-weight: 500;
+      strong {
+        color: var(--jf-text-primary, #0F172A);
+        font-weight: 700;
+      }
+    }
+
+    .jf-page-size-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      select {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: 1px solid var(--jf-border, #CBD5E1);
+        background-color: var(--jf-bg-input, #F8FAFC);
+        color: var(--jf-text-primary, #0F172A);
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s ease;
+
+        &:focus {
+          border-color: #2563EB;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+      }
+    }
+  }
+
+  .jf-pagination-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .jf-page-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--jf-border, #E2E8F0);
+      background-color: var(--jf-bg-card, #FFFFFF);
+      color: var(--jf-text-primary, #1E293B);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+
+      &:hover:not(:disabled):not(.active) {
+        background-color: var(--jf-bg-subtle, #F1F5F9);
+        border-color: #2563EB;
+        color: #2563EB;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        border-color: #1D4ED8 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+        font-weight: 700;
+        cursor: default;
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background-color: var(--jf-bg-subtle, #F8FAFC);
+        color: var(--jf-text-muted, #94A3B8);
+        border-color: var(--jf-border, #E2E8F0);
+        box-shadow: none;
+        transform: none;
+      }
+
+      &.btn-nav-prev,
+      &.btn-nav-next {
+        padding: 0 0.85rem;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+      }
+
+      &.ellipsis {
+        border: none;
+        background: transparent;
+        cursor: default;
+        color: var(--jf-text-muted, #94A3B8);
+        min-width: 24px;
+      }
     }
   }
 }

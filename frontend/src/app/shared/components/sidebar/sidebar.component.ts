@@ -196,7 +196,7 @@ export interface MenuItem {
               display: flex;
               align-items: center;
               gap: 0.85rem;
-              padding: 0.75rem 1rem;
+              padding: 0.75rem 0.75rem;
               border-radius: 10px;
               color: #94A3B8;
               font-size: 0.9rem;

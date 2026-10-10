@@ -13,6 +13,7 @@ import { AppButtonComponent } from '../../shared/components/button/button.compon
 import { AppModalComponent } from '../../shared/components/modal/modal.component';
 import { AppFormInputComponent } from '../../shared/components/form-input/form-input.component';
 import { AppFormSelectComponent, SelectOption } from '../../shared/components/form-select/form-select.component';
+import { AppPaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-invoices',
@@ -26,7 +27,8 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
     AppButtonComponent,
     AppModalComponent,
     AppFormInputComponent,
-    AppFormSelectComponent
+    AppFormSelectComponent,
+    AppPaginationComponent
   ],
   template: `
     <div class="invoices-page">
@@ -201,44 +203,16 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
             </table>
           </div>
 
-          <!-- Pagination with Per-Page Dropdown -->
-          <div *ngIf="invoices.length > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
-            <div class="d-flex align-items-center gap-3">
-              <small class="text-muted">
-                Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
-                <strong>{{ getShowingEndCount() }}</strong> of 
-                <strong>{{ invoices.length }}</strong> invoices
-              </small>
-
-              <div class="d-flex align-items-center gap-2">
-                <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
-                <select 
-                  class="form-select form-select-sm" 
-                  style="width: 90px;" 
-                  [(ngModel)]="pagination.limit" 
-                  (change)="onPageSizeChange()">
-                  <option [ngValue]="5">5</option>
-                  <option [ngValue]="10">10</option>
-                  <option [ngValue]="15">15</option>
-                  <option [ngValue]="20">20</option>
-                </select>
-                <span class="small text-muted">per page</span>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-              <span class="small text-muted">Page {{ pagination.page }} of {{ totalPages }}</span>
-              <div class="btn-group">
-                <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
-                  <i class="bi bi-chevron-left me-1"></i> Prev
-                </button>
-                <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
-                <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= totalPages" (click)="changePage(pagination.page + 1)">
-                  Next <i class="bi bi-chevron-right ms-1"></i>
-                </button>
-              </div>
-            </div>
-          </div>
+          <!-- Unified Modern JusticeFlow Pagination -->
+          <app-pagination
+            [page]="pagination.page"
+            [limit]="pagination.limit"
+            [total]="invoices.length"
+            itemName="invoices"
+            [pageSizeOptions]="[5, 10, 15, 20]"
+            (pageChange)="changePage($event)"
+            (limitChange)="onLimitChange($event)">
+          </app-pagination>
         </app-card>
       </div>
 
@@ -588,12 +562,26 @@ export class InvoicesComponent implements OnInit {
     this.pagination.page = page;
   }
 
+  onLimitChange(limit: number): void {
+    this.pagination.limit = limit;
+    this.pagination.page = 1;
+  }
+
   onPageSizeChange(): void {
     this.pagination.page = 1;
   }
 
   getShowingEndCount(): number {
     return Math.min(this.pagination.page * this.pagination.limit, this.invoices.length);
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const total = this.totalPages || 1;
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   loadSummary() {

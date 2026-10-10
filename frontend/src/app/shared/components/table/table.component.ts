@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppLoaderComponent } from '../loader/loader.component';
 import { AppEmptyStateComponent } from '../empty-state/empty-state.component';
+import { AppPaginationComponent } from '../pagination/pagination.component';
 
 export interface TableColumn {
   field: string;
@@ -14,7 +15,7 @@ export interface TableColumn {
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [CommonModule, AppLoaderComponent, AppEmptyStateComponent],
+  imports: [CommonModule, AppLoaderComponent, AppEmptyStateComponent, AppPaginationComponent],
   template: `
     <div class="table-container-card">
       <div *ngIf="loading" class="table-loading-overlay">
@@ -67,30 +68,16 @@ export interface TableColumn {
         </app-empty-state>
       </div>
 
-      <!-- Pagination Footer -->
-      <div *ngIf="showPagination && totalItems > 0" class="table-pagination-footer">
-        <div class="pagination-info">
-          Showing <span>{{ getShowingStart() }}</span> to <span>{{ getShowingEnd() }}</span> of <span>{{ totalItems }}</span> entries
-        </div>
-
-        <div class="pagination-controls">
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            [disabled]="currentPage <= 1"
-            (click)="goToPage(currentPage - 1)">
-            <i class="bi bi-chevron-left"></i> Previous
-          </button>
-
-          <span class="page-current-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
-
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            [disabled]="currentPage >= totalPages"
-            (click)="goToPage(currentPage + 1)">
-            Next <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-      </div>
+      <!-- Attractive Pagination Footer -->
+      <app-pagination
+        *ngIf="showPagination && totalItems > 0"
+        [page]="currentPage"
+        [limit]="pageSize"
+        [total]="totalItems"
+        itemName="entries"
+        [showPageSize]="false"
+        (pageChange)="goToPage($event)">
+      </app-pagination>
     </div>
   `,
   styles: [`
@@ -230,5 +217,14 @@ export class AppTableComponent {
 
   getShowingEnd(): number {
     return Math.min(this.currentPage * this.pageSize, this.totalItems);
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const total = this.totalPages || 1;
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

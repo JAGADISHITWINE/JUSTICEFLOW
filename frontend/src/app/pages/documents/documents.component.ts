@@ -11,6 +11,7 @@ import { AppButtonComponent } from '../../shared/components/button/button.compon
 import { AppModalComponent } from '../../shared/components/modal/modal.component';
 import { AppFormInputComponent } from '../../shared/components/form-input/form-input.component';
 import { AppFormSelectComponent, SelectOption } from '../../shared/components/form-select/form-select.component';
+import { AppPaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-documents',
@@ -23,165 +24,298 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
     AppButtonComponent,
     AppModalComponent,
     AppFormInputComponent,
-    AppFormSelectComponent
+    AppFormSelectComponent,
+    AppPaginationComponent
   ],
   template: `
     <div class="documents-page">
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
-          <h2 class="page-title mb-1">Legal Document Repository</h2>
-          <p class="text-muted small mb-0">Centralized repository for all client pleadings, contracts, and court exhibits</p>
+          <div class="d-flex align-items-center gap-2">
+            <h2 class="page-title mb-0">Legal Document Repository</h2>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+              <i class="bi bi-shield-lock-fill me-1"></i> Air-Gapped / Private
+            </span>
+          </div>
+          <p class="text-muted small mb-0 mt-1">
+            Centralized legal records repository for pleadings, contracts, affidavits, and court filings with offline NLP intelligence.
+          </p>
         </div>
-        <app-button
-          label="Upload Document"
-          icon="bi-cloud-arrow-up-fill"
-          variant="secondary"
-          (btnClick)="openUploadModal()">
-        </app-button>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary btn-sm" (click)="loadDocuments()" [disabled]="loading" title="Refresh records">
+            <i class="bi bi-arrow-clockwise" [class.spin-icon]="loading"></i> Refresh
+          </button>
+          <app-button
+            label="Upload Document"
+            icon="bi-cloud-arrow-up-fill"
+            variant="primary"
+            (btnClick)="openUploadModal()">
+          </app-button>
+        </div>
       </div>
 
-      <!-- Filters -->
-      <div class="filters-card p-3 mb-4 bg-white rounded-3 border">
+      <!-- Quick Document Metrics / Stat Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="doc-stat-card p-3 rounded-3 border">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small d-block">Total Documents</span>
+                <span class="fs-4 fw-bold text-primary">{{ documents.length }}</span>
+              </div>
+              <div class="stat-icon-badge bg-primary-subtle text-primary">
+                <i class="bi bi-folder2-open fs-5"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
+              Across {{ getUniqueCasesCount() }} legal matters
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="doc-stat-card p-3 rounded-3 border">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small d-block">Repository Size</span>
+                <span class="fs-4 fw-bold text-success">{{ getTotalStorageFormatted() }}</span>
+              </div>
+              <div class="stat-icon-badge bg-success-subtle text-success">
+                <i class="bi bi-hdd-network fs-5"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
+              Local vault storage
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="doc-stat-card p-3 rounded-3 border">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small d-block">Pleadings & Filings</span>
+                <span class="fs-4 fw-bold text-info">{{ getPleadingsCount() }}</span>
+              </div>
+              <div class="stat-icon-badge bg-info-subtle text-info">
+                <i class="bi bi-file-earmark-ruled fs-5"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
+              Plaints, petitions & notices
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="doc-stat-card p-3 rounded-3 border">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small d-block">Offline Analysis</span>
+                <span class="fs-4 fw-bold text-warning">100% Ready</span>
+              </div>
+              <div class="stat-icon-badge bg-warning-subtle text-warning">
+                <i class="bi bi-cpu fs-5"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
+              Air-Gapped TextRank RAG
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Card -->
+      <div class="filters-card p-3 mb-4 rounded-3 border">
         <div class="row g-3 align-items-center">
-          <div class="col-12 col-md-5">
+          <div class="col-12 col-md-4">
             <div class="input-group">
-              <span class="input-group-text bg-light border-end-0">
+              <span class="input-group-text bg-transparent border-end-0">
                 <i class="bi bi-search text-muted"></i>
               </span>
               <input
                 type="text"
                 class="form-control border-start-0"
-                placeholder="Search document name or case title..."
+                placeholder="Search document name or matter title..."
                 [(ngModel)]="searchQuery"
                 (keyup.enter)="loadDocuments()"
               />
+              <button 
+                *ngIf="searchQuery" 
+                class="btn btn-outline-secondary border-start-0" 
+                type="button" 
+                (click)="searchQuery = ''; loadDocuments()">
+                <i class="bi bi-x-lg"></i>
+              </button>
             </div>
           </div>
 
-          <div class="col-6 col-md-4">
+          <div class="col-12 col-md-4">
             <select class="form-select" [(ngModel)]="typeFilter" (change)="loadDocuments()">
-              <option value="All">All Classifications</option>
-              <option value="Complaint / Pleadings">Complaint / Pleadings</option>
-              <option value="Contract">Contract</option>
+              <option value="All">All Document Classifications</option>
+              <option value="Plaint / Statement of Truth">Plaint / Statement of Truth</option>
+              <option value="Commercial Contract">Commercial Contract</option>
+              <option value="Interlocutory Application (Order 39)">Interlocutory Application (Order 39)</option>
               <option value="Probate Record">Probate Record</option>
+              <option value="Court Affidavit">Court Affidavit</option>
+              <option value="Regulatory Appeal Memo">Regulatory Appeal Memo</option>
+              <option value="IP Trademark Certificate">IP Trademark Certificate</option>
+              <option value="Constitutional Writ Paperbook">Constitutional Writ Paperbook</option>
+              <option value="Arbitration Petition">Arbitration Petition</option>
+              <option value="Insolvency Statutory Notice">Insolvency Statutory Notice</option>
+              <option value="Statutory Demand Notice">Statutory Demand Notice</option>
+              <option value="Complaint / Pleadings">Complaint / Pleadings</option>
               <option value="Corporate Term Sheet">Corporate Term Sheet</option>
-              <option value="IP Certificate">IP Certificate</option>
               <option value="Settlement Agreement">Settlement Agreement</option>
             </select>
           </div>
 
-          <div class="col-6 col-md-3 text-end">
-            <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+          <div class="col-12 col-md-4 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" (click)="loadDocuments()">
+              <i class="bi bi-funnel-fill me-1"></i> Apply Filter
+            </button>
+            <button class="btn btn-outline-secondary" (click)="resetFilters()" title="Reset All Filters">
               <i class="bi bi-arrow-counterclockwise"></i> Reset
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Documents Table -->
+      <!-- Documents Table Card -->
       <app-card [noPadding]="true">
         <div class="table-responsive">
           <table class="table table-custom align-middle mb-0">
             <thead>
               <tr>
-                <th>Document File</th>
-                <th>Associated Matter</th>
-                <th>Classification</th>
-                <th>Uploaded By</th>
-                <th>Date Uploaded</th>
-                <th class="text-end">Actions</th>
+                <th style="min-width: 280px;">Document File</th>
+                <th style="min-width: 220px;">Associated Matter</th>
+                <th style="min-width: 170px;">Classification</th>
+                <th style="min-width: 140px;">Uploaded By</th>
+                <th style="min-width: 130px;">Date Uploaded</th>
+                <th class="text-end" style="min-width: 180px;">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let doc of paginatedDocuments">
+                <!-- Document File Name & Size -->
                 <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
-                    <div>
-                      <strong class="text-dark d-block">{{ doc.doc_name }}</strong>
-                      <span class="text-muted small">{{ formatFileSize(doc.file_size) }}</span>
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="doc-icon-wrapper" [ngClass]="getFileIconClass(doc.doc_name)">
+                      <i class="bi" [ngClass]="getFileIcon(doc.doc_name)"></i>
+                    </div>
+                    <div class="text-truncate" style="max-width: 320px;">
+                      <a [href]="getDownloadUrl(doc.id!)" target="_blank" class="fw-semibold doc-link d-block text-truncate" [title]="doc.doc_name">
+                        {{ doc.doc_name }}
+                      </a>
+                      <span class="text-muted small">
+                        <i class="bi bi-hdd me-1"></i>{{ formatFileSize(doc.file_size) }}
+                      </span>
                     </div>
                   </div>
                 </td>
+
+                <!-- Associated Legal Matter -->
                 <td>
-                  <a [routerLink]="['/cases', doc.case_id]" class="fw-semibold text-dark text-hover-blue">
-                    {{ doc.case_name }}
-                  </a>
-                  <div class="text-muted small">{{ doc.case_number }}</div>
+                  <div *ngIf="doc.case_id; else noCase">
+                    <a [routerLink]="['/cases', doc.case_id]" class="fw-semibold doc-matter-link d-block text-truncate" style="max-width: 240px;">
+                      {{ doc.case_name || 'Legal Matter #' + doc.case_id }}
+                    </a>
+                    <span class="badge bg-light text-muted border font-monospace mt-1" style="font-size: 0.72rem;">
+                      {{ doc.case_number || 'CNR Pending' }}
+                    </span>
+                  </div>
+                  <ng-template #noCase>
+                    <span class="text-muted small fst-italic">General Portfolio</span>
+                  </ng-template>
                 </td>
+
+                <!-- Classification Badge -->
                 <td>
-                  <span class="badge bg-light text-dark border">{{ doc.doc_type || 'Other' }}</span>
+                  <span class="badge" [ngClass]="getDocTypeBadgeClass(doc.doc_type)">
+                    {{ doc.doc_type || 'General Legal' }}
+                  </span>
                 </td>
+
+                <!-- Uploaded By -->
                 <td>
-                  <span class="small text-muted">{{ doc.uploader_name || 'Counsel' }}</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="uploader-avatar">
+                      {{ (doc.uploader_name || 'Advocate').charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="small text-secondary">{{ doc.uploader_name || 'Counsel' }}</span>
+                  </div>
                 </td>
+
+                <!-- Date Uploaded -->
                 <td>
                   <span class="small text-muted">{{ doc.uploaded_at | date:'mediumDate' }}</span>
                 </td>
+
+                <!-- Actions -->
                 <td class="text-end">
-                  <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-success" (click)="openOfflineSummary(doc)" title="⚡ Instant Summary (100% Private / No AI)">
-                      <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Summarize
+                  <div class="d-inline-flex align-items-center gap-1">
+                    <button 
+                      class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 px-2 py-1" 
+                      (click)="openOfflineSummary(doc)" 
+                      title="Instant Confidential Brief (100% Air-Gapped NLP)">
+                      <i class="bi bi-lightning-charge-fill text-warning"></i>
+                      <span class="d-none d-lg-inline small">Summarize</span>
                     </button>
-                    <a [href]="getDownloadUrl(doc.id!)" target="_blank" class="btn btn-sm btn-outline-primary" title="Download Document">
+
+                    <a 
+                      [href]="getDownloadUrl(doc.id!)" 
+                      target="_blank" 
+                      class="btn btn-sm btn-outline-primary px-2 py-1" 
+                      title="Download Document">
                       <i class="bi bi-download"></i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger" (click)="deleteDoc(doc)" title="Delete Document">
+
+                    <button 
+                      class="btn btn-sm btn-outline-danger px-2 py-1" 
+                      (click)="deleteDoc(doc)" 
+                      title="Delete Document">
                       <i class="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>
               </tr>
 
+              <!-- Empty State -->
               <tr *ngIf="!loading && paginatedDocuments.length === 0">
                 <td colspan="6" class="text-center py-5 text-muted">
-                  <i class="bi bi-folder-x display-6 d-block mb-2 text-muted"></i>
-                  No documents found matching your filter criteria.
+                  <div class="empty-docs-container py-4">
+                    <i class="bi bi-folder-x display-4 d-block mb-3 text-muted opacity-50"></i>
+                    <h5 class="fw-semibold text-dark">No Documents Found</h5>
+                    <p class="text-muted small mb-3">No legal records match your current search or classification filter.</p>
+                    <button class="btn btn-sm btn-primary" (click)="resetFilters()">
+                      <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Loading State -->
+              <tr *ngIf="loading">
+                <td colspan="6" class="text-center py-5 text-muted">
+                  <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                  <span>Loading legal document vault...</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Pagination with Per-Page Dropdown -->
-        <div *ngIf="documents.length > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
-          <div class="d-flex align-items-center gap-3">
-            <small class="text-muted">
-              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
-              <strong>{{ getShowingEndCount() }}</strong> of 
-              <strong>{{ documents.length }}</strong> repository documents
-            </small>
-
-            <div class="d-flex align-items-center gap-2">
-              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
-              <select 
-                class="form-select form-select-sm" 
-                style="width: 90px;" 
-                [(ngModel)]="pagination.limit" 
-                (change)="onPageSizeChange()">
-                <option [ngValue]="5">5</option>
-                <option [ngValue]="10">10</option>
-                <option [ngValue]="15">15</option>
-                <option [ngValue]="20">20</option>
-              </select>
-              <span class="small text-muted">per page</span>
-            </div>
-          </div>
-
-          <div class="d-flex align-items-center gap-2">
-            <span class="small text-muted">Page {{ pagination.page }} of {{ totalPages }}</span>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
-                <i class="bi bi-chevron-left me-1"></i> Prev
-              </button>
-              <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
-              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= totalPages" (click)="changePage(pagination.page + 1)">
-                Next <i class="bi bi-chevron-right ms-1"></i>
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- Unified Modern JusticeFlow Pagination -->
+        <app-pagination
+          [page]="pagination.page"
+          [limit]="pagination.limit"
+          [total]="documents.length"
+          itemName="documents"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          (pageChange)="changePage($event)"
+          (limitChange)="changeLimit($event)">
+        </app-pagination>
       </app-card>
 
       <!-- Upload Modal -->
@@ -219,6 +353,10 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
           <div class="mb-3">
             <label class="form-label small text-dark fw-medium">Upload File Attachment</label>
             <input type="file" class="form-control" (change)="onFileSelected($event)">
+            <div class="form-text small" *ngIf="selectedFile">
+              <i class="bi bi-check-circle-fill text-success me-1"></i>
+              Selected: <strong>{{ selectedFile.name }}</strong> ({{ formatFileSize(selectedFile.size) }})
+            </div>
           </div>
         </form>
 
@@ -307,7 +445,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
 
             <!-- Highlighted Badges Grid -->
             <div class="row g-3 mb-3">
-              <!-- Key Themes & Topics (RAKE Graph Algorithm) -->
+              <!-- Key Themes & Topics -->
               <div class="col-12 col-md-6" *ngIf="summaryData.highlights?.core_themes_and_topics?.length">
                 <div class="p-2 border rounded bg-white h-100">
                   <div class="fw-bold small text-primary mb-1"><i class="bi bi-lightbulb-fill me-1"></i>Core Themes & Topics</div>
@@ -319,7 +457,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
                 </div>
               </div>
 
-              <!-- Entities & Organizations (Title-Case N-Grams) -->
+              <!-- Entities & Organizations -->
               <div class="col-12 col-md-6" *ngIf="summaryData.highlights?.key_entities_and_organizations?.length">
                 <div class="p-2 border rounded bg-white h-100">
                   <div class="fw-bold small text-info mb-1"><i class="bi bi-building me-1"></i>Key Entities & Organizations</div>
@@ -331,7 +469,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
                 </div>
               </div>
 
-              <!-- Metrics, Criteria & Quantitative Specs -->
+              <!-- Metrics & Quantitative Specs -->
               <div class="col-12 col-md-6" *ngIf="summaryData.highlights?.quantitative_metrics_and_specs?.length">
                 <div class="p-2 border rounded bg-white h-100">
                   <div class="fw-bold small text-success mb-1"><i class="bi bi-speedometer2 me-1"></i>Metrics & Quantitative Specs</div>
@@ -356,7 +494,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
               </div>
             </div>
 
-            <!-- Action Directives & Rules (Imperative Statements) -->
+            <!-- Action Directives & Rules -->
             <div *ngIf="(summaryData.highlights?.action_directives_and_rules || summaryData.highlights?.key_action_items)?.length" class="mb-3">
               <div class="fw-bold small text-dark mb-1"><i class="bi bi-check2-square text-success me-1"></i>Key Action Directives & Guidelines:</div>
               <ul class="list-group list-group-flush border rounded">
@@ -368,7 +506,7 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
           </div>
         </div>
 
-        <!-- TAB 2: CLIENT & CASE RAG INTELLIGENCE (CROSS-DOCUMENT MEMORY) -->
+        <!-- TAB 2: CLIENT & CASE RAG INTELLIGENCE -->
         <div *ngIf="activeBriefTab === 'caseRag'">
           <div *ngIf="loadingRag" class="text-center py-4">
             <div class="spinner-border text-primary spinner-border-sm mb-2" role="status"></div>
@@ -495,10 +633,104 @@ import { AppFormSelectComponent, SelectOption } from '../../shared/components/fo
     .documents-page {
       .page-title {
         font-size: 1.65rem;
-        color: #2C3E50;
+        font-weight: 700;
+        color: var(--jf-text-primary, #0F172A);
       }
-      .text-hover-blue:hover {
-        color: #3498DB !important;
+
+      .doc-stat-card {
+        background: var(--jf-bg-card, #FFFFFF);
+        border-color: var(--jf-border, #E2E8F0) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--jf-shadow-sm, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+        }
+
+        .stat-icon-badge {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      .filters-card {
+        background: var(--jf-bg-card, #FFFFFF);
+        border-color: var(--jf-border, #E2E8F0) !important;
+      }
+
+      .doc-icon-wrapper {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+
+        &.icon-pdf {
+          background: rgba(239, 68, 68, 0.12);
+          color: #EF4444;
+        }
+        &.icon-word {
+          background: rgba(37, 99, 235, 0.12);
+          color: #2563EB;
+        }
+        &.icon-excel {
+          background: rgba(16, 185, 129, 0.12);
+          color: #10B981;
+        }
+        &.icon-default {
+          background: rgba(99, 102, 241, 0.12);
+          color: #6366F1;
+        }
+      }
+
+      .doc-link {
+        color: var(--jf-text-primary, #0F172A);
+        text-decoration: none;
+        transition: color 0.15s ease;
+
+        &:hover {
+          color: #2563EB !important;
+        }
+      }
+
+      .doc-matter-link {
+        color: var(--jf-text-primary, #0F172A);
+        text-decoration: none;
+        font-size: 0.9rem;
+
+        &:hover {
+          color: #2563EB !important;
+        }
+      }
+
+      .uploader-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #3B82F6;
+        color: #FFFFFF;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .spin-icon {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
       }
     }
   `]
@@ -516,7 +748,7 @@ export class DocumentsComponent implements OnInit {
   isUploadModalOpen: boolean = false;
   uploadCaseId: number = 0;
   uploadDocName: string = '';
-  uploadDocType: string = 'Complaint / Pleadings';
+  uploadDocType: string = 'Plaint / Statement of Truth';
   selectedFile: File | null = null;
 
   // Confidential Offline Summary state
@@ -538,19 +770,28 @@ export class DocumentsComponent implements OnInit {
 
   caseOptions: SelectOption[] = [];
   docTypeOptions: SelectOption[] = [
-    { label: 'Complaint / Pleadings', value: 'Complaint / Pleadings' },
-    { label: 'Contract / Agreement', value: 'Contract' },
+    { label: 'Plaint / Statement of Truth', value: 'Plaint / Statement of Truth' },
+    { label: 'Commercial Contract', value: 'Commercial Contract' },
+    { label: 'Interlocutory Application (Order 39)', value: 'Interlocutory Application (Order 39)' },
     { label: 'Probate Record', value: 'Probate Record' },
+    { label: 'Court Affidavit', value: 'Court Affidavit' },
+    { label: 'Regulatory Appeal Memo', value: 'Regulatory Appeal Memo' },
+    { label: 'IP Trademark Certificate', value: 'IP Trademark Certificate' },
+    { label: 'Constitutional Writ Paperbook', value: 'Constitutional Writ Paperbook' },
+    { label: 'Arbitration Petition', value: 'Arbitration Petition' },
+    { label: 'Insolvency Statutory Notice', value: 'Insolvency Statutory Notice' },
+    { label: 'Statutory Demand Notice', value: 'Statutory Demand Notice' },
+    { label: 'Complaint / Pleadings', value: 'Complaint / Pleadings' },
     { label: 'Corporate Term Sheet', value: 'Corporate Term Sheet' },
-    { label: 'IP Certificate', value: 'IP Certificate' },
-    { label: 'Settlement Agreement', value: 'Settlement Agreement' }
+    { label: 'Settlement Agreement', value: 'Settlement Agreement' },
+    { label: 'Other Legal Instrument', value: 'Other' }
   ];
 
   constructor(
     private documentService: DocumentService,
     private caseService: CaseService,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -562,20 +803,13 @@ export class DocumentsComponent implements OnInit {
     return this.documents.slice(startIndex, startIndex + this.pagination.limit);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.documents.length / this.pagination.limit) || 1;
-  }
-
   changePage(page: number): void {
     this.pagination.page = page;
   }
 
-  onPageSizeChange(): void {
+  changeLimit(limit: number): void {
+    this.pagination.limit = limit;
     this.pagination.page = 1;
-  }
-
-  getShowingEndCount(): number {
-    return Math.min(this.pagination.page * this.pagination.limit, this.documents.length);
   }
 
   loadDocuments() {
@@ -684,6 +918,54 @@ export class DocumentsComponent implements OnInit {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  getTotalStorageFormatted(): string {
+    const totalBytes = this.documents.reduce((acc, d) => acc + (d.file_size || 0), 0);
+    return this.formatFileSize(totalBytes);
+  }
+
+  getUniqueCasesCount(): number {
+    return new Set(this.documents.map(d => d.case_id)).size;
+  }
+
+  getPleadingsCount(): number {
+    return this.documents.filter(d =>
+      d.doc_type?.includes('Plaint') ||
+      d.doc_type?.includes('Petition') ||
+      d.doc_type?.includes('Notice') ||
+      d.doc_type?.includes('Affidavit')
+    ).length;
+  }
+
+  getFileIcon(name?: string): string {
+    if (!name) return 'bi-file-earmark-text-fill';
+    const lower = name.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'bi-file-earmark-pdf-fill';
+    if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'bi-file-earmark-word-fill';
+    if (lower.endsWith('.xls') || lower.endsWith('.xlsx')) return 'bi-file-earmark-excel-fill';
+    return 'bi-file-earmark-text-fill';
+  }
+
+  getFileIconClass(name?: string): string {
+    if (!name) return 'icon-default';
+    const lower = name.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'icon-pdf';
+    if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'icon-word';
+    if (lower.endsWith('.xls') || lower.endsWith('.xlsx')) return 'icon-excel';
+    return 'icon-default';
+  }
+
+  getDocTypeBadgeClass(type?: string): string {
+    if (!type) return 'bg-light text-dark border';
+    if (type.includes('Plaint') || type.includes('Complaint')) return 'bg-primary-subtle text-primary border border-primary-subtle';
+    if (type.includes('Contract')) return 'bg-info-subtle text-info border border-info-subtle';
+    if (type.includes('Application')) return 'bg-warning-subtle text-warning border border-warning-subtle';
+    if (type.includes('Affidavit')) return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+    if (type.includes('Notice')) return 'bg-danger-subtle text-danger border border-danger-subtle';
+    if (type.includes('Petition')) return 'bg-primary text-white';
+    if (type.includes('Probate')) return 'bg-success-subtle text-success border border-success-subtle';
+    return 'bg-light text-dark border';
   }
 
   openOfflineSummary(doc: DocumentItem): void {

@@ -10,6 +10,7 @@ import { AppCardComponent } from '../../shared/components/card/card.component';
 import { AppBadgeComponent } from '../../shared/components/badge/badge.component';
 import { AppButtonComponent } from '../../shared/components/button/button.component';
 import { AppModalComponent } from '../../shared/components/modal/modal.component';
+import { AppPaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-retainers',
@@ -20,7 +21,8 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
     AppCardComponent,
     AppBadgeComponent,
     AppButtonComponent,
-    AppModalComponent
+    AppModalComponent,
+    AppPaginationComponent
   ],
   template: `
     <div class="retainers-page">
@@ -176,44 +178,16 @@ import { AppModalComponent } from '../../shared/components/modal/modal.component
           </table>
         </div>
 
-        <!-- Pagination with Per-Page Dropdown -->
-        <div *ngIf="retainers.length > 0" class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 border-top bg-light">
-          <div class="d-flex align-items-center gap-3">
-            <small class="text-muted">
-              Showing <strong>{{ ((pagination.page - 1) * pagination.limit) + 1 }}</strong> - 
-              <strong>{{ getShowingEndCount() }}</strong> of 
-              <strong>{{ retainers.length }}</strong> retainer agreements
-            </small>
-
-            <div class="d-flex align-items-center gap-2">
-              <label class="form-label small text-muted mb-0 fw-semibold">Show:</label>
-              <select 
-                class="form-select form-select-sm" 
-                style="width: 90px;" 
-                [(ngModel)]="pagination.limit" 
-                (change)="onPageSizeChange()">
-                <option [ngValue]="5">5</option>
-                <option [ngValue]="10">10</option>
-                <option [ngValue]="15">15</option>
-                <option [ngValue]="20">20</option>
-              </select>
-              <span class="small text-muted">per page</span>
-            </div>
-          </div>
-
-          <div class="d-flex align-items-center gap-2">
-            <span class="small text-muted">Page {{ pagination.page }} of {{ totalPages }}</span>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page <= 1" (click)="changePage(pagination.page - 1)">
-                <i class="bi bi-chevron-left me-1"></i> Prev
-              </button>
-              <button class="btn btn-sm btn-secondary text-white px-3" disabled>{{ pagination.page }}</button>
-              <button class="btn btn-sm btn-outline-secondary" [disabled]="pagination.page >= totalPages" (click)="changePage(pagination.page + 1)">
-                Next <i class="bi bi-chevron-right ms-1"></i>
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- Unified Modern JusticeFlow Pagination -->
+        <app-pagination
+          [page]="pagination.page"
+          [limit]="pagination.limit"
+          [total]="retainers.length"
+          itemName="retainer agreements"
+          [pageSizeOptions]="[5, 10, 15, 20]"
+          (pageChange)="changePage($event)"
+          (limitChange)="onLimitChange($event)">
+        </app-pagination>
       </app-card>
 
       <!-- MODAL 1: Draft New Retainer Agreement (v1.0) -->
@@ -456,6 +430,11 @@ export class RetainersComponent implements OnInit {
 
   changePage(page: number): void {
     this.pagination.page = page;
+  }
+
+  onLimitChange(limit: number): void {
+    this.pagination.limit = limit;
+    this.pagination.page = 1;
   }
 
   onPageSizeChange(): void {

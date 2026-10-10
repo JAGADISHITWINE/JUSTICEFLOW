@@ -117,11 +117,24 @@ import { AppLoaderComponent } from '../../shared/components/loader/loader.compon
         </div>
 
         <!-- Middle Section: Recent Cases & Upcoming Deadlines -->
-        <div class="row g-4 mb-4">
-          <!-- Recent Matters Table -->
-          <div class="col-12 col-lg-8">
+        <!-- Middle Section: Recent Cases & Upcoming Deadlines (X-Flow Collapsible) -->
+        <div class="d-flex flex-column flex-lg-row align-items-stretch gap-4 mb-4 position-relative dashboard-xflow-container">
+          
+          <!-- Recent Matters Table (Expands along X-axis when deadlines are collapsed) -->
+          <div class="cases-panel-xflow flex-grow-1" [class.is-expanded]="courtDeadlinesCollapsed">
             <app-card title="Active Legal Matters" icon="bi-folder2-open" [hasCustomHeader]="true">
-              <div card-actions>
+              <div card-actions class="d-flex align-items-center gap-2">
+                <!-- X-Flow Toggle Button in Matters Header -->
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [ngClass]="courtDeadlinesCollapsed ? 'btn-outline-primary' : 'btn-outline-secondary'"
+                  (click)="courtDeadlinesCollapsed = !courtDeadlinesCollapsed"
+                  [title]="courtDeadlinesCollapsed ? 'Expand Court Deadlines panel horizontally (X-flow)' : 'Collapse Court Deadlines panel horizontally (X-flow)'">
+                  <i class="bi" [ngClass]="courtDeadlinesCollapsed ? 'bi-layout-sidebar-reverse me-1' : 'bi-chevron-bar-right me-1'"></i>
+                  <span>{{ courtDeadlinesCollapsed ? 'Show Deadlines (' + stats.upcomingDeadlines.length + ')' : 'Collapse Deadlines' }}</span>
+                </button>
+
                 <a routerLink="/cases" class="btn btn-sm btn-outline-primary">
                   View All ({{ stats.cases.total_cases }})
                 </a>
@@ -181,29 +194,73 @@ import { AppLoaderComponent } from '../../shared/components/loader/loader.compon
             </app-card>
           </div>
 
-          <!-- Upcoming Deadlines & Calendar -->
-          <div class="col-12 col-lg-4">
-            <app-card title="Court Deadlines" icon="bi-calendar-event">
-              <div class="deadlines-list">
-                <div *ngFor="let deadline of stats.upcomingDeadlines" class="deadline-item">
-                  <div class="deadline-date-box">
-                    <span class="day">{{ formatDay(deadline.expected_close_date) }}</span>
-                    <span class="month">{{ formatMonth(deadline.expected_close_date) }}</span>
-                  </div>
-                  <div class="deadline-details">
-                    <a [routerLink]="['/cases', deadline.id]" class="deadline-title">
-                      {{ deadline.case_name }}
-                    </a>
-                    <span class="deadline-client text-muted">{{ deadline.client_name }}</span>
-                    <span class="badge bg-danger-subtle text-danger small mt-1">Filing Expected</span>
-                  </div>
+          <!-- Upcoming Deadlines & Calendar (Collapses horizontally along X-axis) -->
+          <div class="deadlines-panel-xflow" [class.is-x-collapsed]="courtDeadlinesCollapsed">
+            
+            <!-- Expanded Full Card Mode -->
+            <div *ngIf="!courtDeadlinesCollapsed" class="deadlines-card-wrapper">
+              <app-card
+                title="Court Deadlines"
+                icon="bi-calendar-event"
+                [badgeText]="(stats.upcomingDeadlines.length || 0) + ' upcoming'"
+                badgeClass="badge bg-danger-subtle text-danger border border-danger-subtle"
+                [hasCustomHeader]="true"
+              >
+                <div card-actions class="d-flex align-items-center gap-1">
+                  <a routerLink="/calendar" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.78rem;" title="View Full Cause List & Calendar">
+                    <i class="bi bi-calendar3 me-1"></i>Cause List
+                  </a>
+                  <!-- Collapse along X axis button -->
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-card-collapse-x"
+                    (click)="courtDeadlinesCollapsed = true"
+                    title="Collapse horizontally (X-flow)">
+                    <i class="bi bi-chevron-bar-right"></i>
+                  </button>
                 </div>
 
-                <div *ngIf="!stats.upcomingDeadlines || stats.upcomingDeadlines.length === 0" class="text-muted text-center py-3">
-                  No upcoming deadlines scheduled.
+                <div class="deadlines-list">
+                  <div *ngFor="let deadline of stats.upcomingDeadlines" class="deadline-item">
+                    <div class="deadline-date-box">
+                      <span class="day">{{ formatDay(deadline.expected_close_date) }}</span>
+                      <span class="month">{{ formatMonth(deadline.expected_close_date) }}</span>
+                    </div>
+                    <div class="deadline-details">
+                      <a [routerLink]="['/cases', deadline.id]" class="deadline-title">
+                        {{ deadline.case_name }}
+                      </a>
+                      <span class="deadline-client text-muted">{{ deadline.client_name }}</span>
+                      <span class="badge bg-danger-subtle text-danger small mt-1">Filing Expected</span>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!stats.upcomingDeadlines || stats.upcomingDeadlines.length === 0" class="text-muted text-center py-3">
+                    No upcoming deadlines scheduled.
+                  </div>
                 </div>
+              </app-card>
+            </div>
+
+            <!-- Collapsed X-Flow Slim Rail Dock (Desktop & Tablet) -->
+            <div
+              *ngIf="courtDeadlinesCollapsed"
+              class="deadlines-dock-rail d-none d-lg-flex"
+              (click)="courtDeadlinesCollapsed = false"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="courtDeadlinesCollapsed = false"
+              title="Expand Court Deadlines panel horizontally (X-flow)">
+              <div class="dock-expand-arrow">
+                <i class="bi bi-chevron-left"></i>
               </div>
-            </app-card>
+              <div class="dock-icon-box">
+                <i class="bi bi-calendar-event"></i>
+              </div>
+              <span class="dock-badge">{{ stats.upcomingDeadlines.length }}</span>
+              <div class="dock-vertical-title">Court Deadlines</div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -311,6 +368,144 @@ import { AppLoaderComponent } from '../../shared/components/loader/loader.compon
           }
         }
       }
+
+      /* X-Flow Horizontal Sliding Container Styles */
+      .dashboard-xflow-container {
+        position: relative;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .cases-panel-xflow {
+          min-width: 0;
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .deadlines-panel-xflow {
+          flex-shrink: 0;
+          width: 380px;
+          transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+          @media (max-width: 1200px) {
+            width: 330px;
+          }
+
+          @media (max-width: 991px) {
+            width: 100%;
+          }
+
+          &.is-x-collapsed {
+            width: 48px;
+
+            @media (max-width: 991px) {
+              display: none;
+            }
+          }
+
+          .deadlines-card-wrapper {
+            height: 100%;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .deadlines-dock-rail {
+            width: 48px;
+            height: 100%;
+            min-height: 280px;
+            background: var(--jf-bg-card, #FFFFFF);
+            border: 1px solid var(--jf-border, #E2E8F0);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0;
+            gap: 0.85rem;
+            cursor: pointer;
+            box-shadow: var(--jf-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
+            transition: all 0.25s ease;
+            user-select: none;
+
+            &:hover {
+              background: var(--jf-bg-hover, #F8FAFC);
+              border-color: #2563EB;
+              box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+              transform: translateX(-2px);
+
+              .dock-expand-arrow {
+                color: #2563EB;
+                transform: translateX(-2px);
+              }
+            }
+
+            .dock-expand-arrow {
+              font-size: 0.85rem;
+              color: var(--jf-text-muted, #64748B);
+              transition: all 0.2s ease;
+            }
+
+            .dock-icon-box {
+              width: 32px;
+              height: 32px;
+              border-radius: 8px;
+              background: rgba(37, 99, 235, 0.1);
+              color: #2563EB;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1rem;
+            }
+
+            .dock-badge {
+              font-size: 0.72rem;
+              font-weight: 700;
+              background: rgba(220, 38, 38, 0.12);
+              color: #DC2626;
+              border: 1px solid rgba(220, 38, 38, 0.25);
+              border-radius: 12px;
+              padding: 0.15rem 0.45rem;
+              line-height: 1;
+            }
+
+            .dock-vertical-title {
+              writing-mode: vertical-rl;
+              transform: rotate(180deg);
+              font-size: 0.82rem;
+              font-weight: 600;
+              color: var(--jf-text-primary, #2C3E50);
+              letter-spacing: 0.5px;
+              margin-top: 0.5rem;
+            }
+          }
+
+          .btn-card-collapse-x {
+            background: none;
+            border: 1px solid var(--jf-border, #E2E8F0);
+            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--jf-text-muted, #64748B);
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              background-color: var(--jf-bg-subtle, #F1F5F9);
+              color: #2563EB;
+              border-color: #2563EB;
+            }
+          }
+        }
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
   `]
 })
@@ -318,6 +513,7 @@ export class DashboardComponent implements OnInit {
   stats: DashboardData | null = null;
   loading: boolean = true;
   currentUser: User | null = null;
+  courtDeadlinesCollapsed: boolean = false;
   Number = Number;
 
   constructor(

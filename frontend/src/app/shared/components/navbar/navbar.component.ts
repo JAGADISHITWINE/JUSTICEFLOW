@@ -15,6 +15,16 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
   template: `
     <header class="app-top-navbar">
       <div class="navbar-left">
+        <!-- Sidebar Toggle for Mobile & Tablet -->
+        <button
+          type="button"
+          class="btn-sidebar-toggle d-lg-none"
+          (click)="toggleSidebar()"
+          aria-label="Toggle navigation menu"
+          title="Toggle Navigation Menu">
+          <i class="bi bi-list"></i>
+        </button>
+
         <div class="brand-container d-md-none">
           <span class="brand-icon"><i class="bi bi-shield-shaded"></i></span>
           <span class="brand-text">JusticeFlow</span>
@@ -32,32 +42,30 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
       </div>
 
       <div class="navbar-right">
-        <!-- Day / Night Mode Toggle Switch -->
-        <div class="theme-toggle-container d-none d-sm-flex align-items-center">
-          <app-theme-toggle variant="segmented"></app-theme-toggle>
-        </div>
-        <div class="theme-toggle-container d-flex d-sm-none align-items-center">
-          <app-theme-toggle variant="icon"></app-theme-toggle>
+        <!-- Day / Night Mode Toggle Switch (Interactive sliding toggle button) -->
+        <div class="theme-toggle-container">
+          <app-theme-toggle variant="toggle" [showLabel]="false"></app-theme-toggle>
         </div>
 
-        <!-- Practice Mode Switcher (Firm vs Solo Chambers) -->
-        <div class="practice-mode-pill d-flex align-items-center gap-1 px-2 py-1 rounded-pill border"
-             [ngClass]="practiceModeService.isFirmMode ? 'bg-primary-subtle text-primary border-primary-subtle' : 'bg-success-subtle text-success border-success-subtle'"
-             (click)="togglePracticeMode()"
-             style="cursor: pointer; font-size: 11.5px;"
-             [title]="practiceModeService.isFirmMode ? 'Switch to Solo Chambers Mode' : 'Switch to Multi-Team Law Firm Mode'">
-          <i [class]="practiceModeService.isFirmMode ? 'bi bi-buildings-fill me-1' : 'bi bi-person-workspace me-1'"></i>
-          <span class="fw-bold">{{ practiceModeService.isFirmMode ? 'Law Firm Mode' : 'Solo Advocate Mode' }}</span>
-          <span class="badge bg-white text-dark border ms-1" style="font-size: 9px; padding: 2px 4px;">
-            {{ practiceModeService.isFirmMode ? 'Multi-Team' : 'Solo' }}
-          </span>
-        </div>
+        <!-- Practice Mode Switcher (Sleek compact pill) -->
+        <button
+          type="button"
+          class="btn-practice-mode"
+          [class.firm-mode]="practiceModeService.isFirmMode"
+          (click)="togglePracticeMode()"
+          [title]="practiceModeService.isFirmMode ? 'Law Firm Mode (Click to switch to Solo Chambers)' : 'Solo Advocate Mode (Click to switch to Multi-Team Firm)'">
+          <i [class]="practiceModeService.isFirmMode ? 'bi bi-buildings-fill' : 'bi bi-person-workspace'"></i>
+          <span class="mode-label d-none d-sm-inline">{{ practiceModeService.isFirmMode ? 'Law Firm' : 'Solo' }}</span>
+        </button>
 
-        <!-- Active Secure Session Indicator -->
-        <div class="session-timer-badge d-none d-lg-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-light text-secondary border-secondary-subtle"
-             title="Session is secure & active. Your work will not be interrupted.">
-          <i class="bi bi-shield-check text-success"></i>
-          <span class="small fw-semibold" style="font-size: 11px;">Active Session</span>
+        <!-- Vertical Hairline Divider -->
+        <div class="nav-vr d-none d-sm-block"></div>
+
+        <!-- Active Secure Session Indicator (Compact & clean) -->
+        <div class="session-indicator d-none d-xl-flex"
+             title="Active Secure Session (BCI & IT Act 2000 Compliant)">
+          <span class="session-dot"></span>
+          <span class="session-text">Encrypted</span>
         </div>
 
         <!-- Notification Center Bell & Dropdown Flyout -->
@@ -271,35 +279,48 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
     </header>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 64px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 1025;
+    }
+
     .app-top-navbar {
       height: 64px;
+      width: 100%;
       background: var(--jf-navbar-bg, #FFFFFF);
       border-bottom: 1px solid var(--jf-border, #E2E8F0);
-      padding: 0 1.5rem;
+      padding: 0 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 1020;
-      box-shadow: var(--jf-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
-      transition: background-color 0.25s ease, border-color 0.25s ease;
+      z-index: 1025;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 
       .navbar-left {
         display: flex;
         align-items: center;
-        gap: 1.25rem;
+        gap: 0.85rem;
 
         .btn-sidebar-toggle {
           background: var(--jf-bg-card, #FFFFFF);
           border: 1px solid var(--jf-border, #E2E8F0);
           border-radius: 8px;
-          width: 38px;
-          height: 38px;
+          width: 36px;
+          height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.25rem;
+          font-size: 1.2rem;
           color: var(--jf-text-primary, #1E293B);
           cursor: pointer;
           transition: all 0.2s ease;
@@ -336,23 +357,28 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
             position: absolute;
             left: 0.85rem;
             color: var(--jf-text-subtle, #94A3B8);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            pointer-events: none;
           }
 
           .form-control-navbar {
-            padding: 0.45rem 0.85rem 0.45rem 2.25rem;
+            padding: 0.42rem 0.85rem 0.42rem 2.2rem;
             border-radius: 20px;
             border: 1px solid var(--jf-border-input, #CBD5E1);
             background-color: var(--jf-bg-input, #F8FAFC);
             color: var(--jf-text-primary, #0F172A);
-            font-size: 0.85rem;
-            width: 280px;
+            font-size: 0.84rem;
+            width: 220px;
             transition: all 0.2s ease;
+
+            @media (min-width: 1200px) {
+              width: 260px;
+            }
 
             &:focus {
               outline: none;
               border-color: var(--jf-accent-primary, #2563EB);
-              width: 340px;
+              width: 290px;
               background-color: var(--jf-bg-card, #FFFFFF);
               box-shadow: 0 0 0 3px var(--jf-accent-glow, rgba(37, 99, 235, 0.15));
             }
@@ -363,25 +389,67 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
       .navbar-right {
         display: flex;
         align-items: center;
-        gap: 1.25rem;
+        gap: 0.5rem;
 
-        .practice-badge {
+        .btn-practice-mode {
+          display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
-          padding: 0.35rem 0.75rem;
-          background: rgba(39, 174, 96, 0.12);
-          color: #27AE60;
+          gap: 0.35rem;
+          padding: 0.35rem 0.65rem;
           border-radius: 20px;
-          font-size: 0.75rem;
+          border: 1px solid var(--jf-border, #E2E8F0);
+          background-color: var(--jf-bg-subtle, #F8FAFC);
+          color: var(--jf-text-body, #334155);
+          font-size: 0.78rem;
           font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          line-height: 1;
 
-          .pulse-indicator {
-            width: 8px;
-            height: 8px;
+          &.firm-mode {
+            background-color: rgba(37, 99, 235, 0.08);
+            border-color: rgba(37, 99, 235, 0.25);
+            color: #2563EB;
+          }
+
+          &:not(.firm-mode) {
+            background-color: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #059669;
+          }
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        .nav-vr {
+          width: 1px;
+          height: 22px;
+          background-color: var(--jf-border, #E2E8F0);
+          margin: 0 0.15rem;
+        }
+
+        .session-indicator {
+          padding: 0.25rem 0.55rem;
+          border-radius: 12px;
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: var(--jf-text-muted, #64748B);
+          background-color: var(--jf-bg-subtle, #F8FAFC);
+          border: 1px solid var(--jf-border, #E2E8F0);
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+
+          .session-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background-color: #27AE60;
-            box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
-            animation: pulse 1.8s infinite;
+            background-color: #10B981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 2s infinite;
           }
         }
 
@@ -389,11 +457,11 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
           background: none;
           border: none;
           position: relative;
-          color: var(--jf-text-muted, #7F8C8D);
-          font-size: 1.2rem;
+          color: var(--jf-text-muted, #64748B);
+          font-size: 1.15rem;
           cursor: pointer;
-          width: 38px;
-          height: 38px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -409,9 +477,9 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
             position: absolute;
             top: 2px;
             right: 2px;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 4px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 3px;
             background-color: #DC2626;
             color: #FFFFFF;
             border-radius: 10px;
@@ -685,7 +753,8 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
               display: flex;
               flex-direction: column;
               line-height: 1.2;
-              max-width: 180px;
+              max-width: 130px;
+              overflow: hidden;
 
               .user-fullname {
                 font-size: 0.85rem;
@@ -698,9 +767,13 @@ import { AppThemeToggleComponent } from '../theme-toggle/theme-toggle.component'
               }
 
               .user-role {
-                font-size: 0.75rem;
+                font-size: 0.73rem;
                 color: var(--jf-text-muted, #7F8C8D);
                 text-transform: capitalize;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: block;
               }
             }
           }
