@@ -191,3 +191,6 @@ The login interface includes one-click autofill buttons for convenience:
 - [API Documentation](file:///var/www/html/JUSTICEFLOW/JUSTICEFLOW/API_DOCUMENTATION.md)
 - [Component Documentation](file:///var/www/html/JUSTICEFLOW/JUSTICEFLOW/COMPONENT_DOCUMENTATION.md)
 - [Database Schema (SQL)](file:///var/www/html/JUSTICEFLOW/JUSTICEFLOW/backend/database/setup.sql)
+
+Whenever you start coding, keep this watcher running in a separate PowerShell terminal tab:
+npm run watch:push
